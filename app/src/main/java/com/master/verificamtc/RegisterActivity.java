@@ -3,7 +3,6 @@ package com.master.verificamtc;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 import android.view.View;
 import android.app.DatePickerDialog;
 import androidx.activity.EdgeToEdge;
@@ -15,7 +14,7 @@ import java.util.Calendar;
 import java.util.Locale;
 
 public class RegisterActivity extends AppCompatActivity {
-    EditText dni, password, date;
+    EditText dni, names, lastNames, email, password, date;
 
     Button registerButton;
     @Override
@@ -29,8 +28,11 @@ public class RegisterActivity extends AppCompatActivity {
             return insets;
         });
         dni = findViewById(R.id.register_dni);
+        names = findViewById(R.id.register_names);
+        lastNames = findViewById(R.id.register_lastnames);
+        email = findViewById(R.id.register_email);
         password = findViewById(R.id.register_password);
-        date= findViewById(R.id.register_nacimiento);
+        date= findViewById(R.id.register_birthdate);
         registerButton = findViewById(R.id.register_button);
 
         date.setOnClickListener(new View.OnClickListener() {
@@ -54,17 +56,20 @@ public class RegisterActivity extends AppCompatActivity {
                 datePickerDialog.show();
             }
         });
-        registerButton.setOnClickListener(view -> {
-            String d = dni.getText().toString();
-            String p = password.getText().toString();
 
-            // Aquí podrías guardar en una base de datos local o validar
-            if (!d.isEmpty() && !p.isEmpty()) {
-                Toast.makeText(this, "Registro exitoso", Toast.LENGTH_SHORT).show();
-                finish(); // vuelve a la pantalla de login
-            } else {
-                Toast.makeText(this, "Por favor completa todos los campos", Toast.LENGTH_SHORT).show();
+        registerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view){
+                DatabaseScheme myDB = new DatabaseScheme (RegisterActivity.this);
+                myDB.addAuth(Integer.valueOf(dni.getText().toString().trim()),
+                        names.getText().toString().trim(),
+                        lastNames.getText().toString().trim(),
+                        date.getText().toString().trim(),
+                        email.getText().toString().trim(),
+                        password.getText().toString().trim()
+                );
             }
+
         });
     }
 }

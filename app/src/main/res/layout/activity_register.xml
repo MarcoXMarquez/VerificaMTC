@@ -25,8 +25,20 @@
         android:layout_gravity="center_horizontal"
         android:orientation="vertical"
         android:padding="24dp">
-        <EditText
-            android:id="@+id/register_nombres"
+
+            <EditText
+                android:id="@+id/register_dni"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="DNI"
+                android:importantForAutofill="no"
+                android:inputType="number"
+                android:minHeight="48dp"
+                tools:ignore="VisualLintTextFieldSize" />
+
+            <EditText
+            android:id="@+id/register_names"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -36,7 +48,7 @@
             android:minHeight="48dp" />
 
         <EditText
-            android:id="@+id/register_apellidos"
+            android:id="@+id/register_lastnames"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -46,19 +58,8 @@
             android:minHeight="48dp"
             tools:ignore="VisualLintTextFieldSize" />
 
-        <EditText
-            android:id="@+id/register_dni"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:hint="DNI"
-            android:importantForAutofill="no"
-            android:inputType="number"
-            android:minHeight="48dp"
-            tools:ignore="VisualLintTextFieldSize"/>
-
-        <EditText
-            android:id="@+id/register_nacimiento"
+            <EditText
+            android:id="@+id/register_birthdate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
