@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">VerificaMTC</string>
+    <string name="dni">DNI</string>
+    <string name="login">Login</string>
+    <string name="contrase_a">Contraseña</string>
+    <string name="registrado">No registrado aun? Registrese Ahora</string>
+    <string name="nombres">Nombres</string>
+    <string name="correo">Correo</string>
+</resources>
