@@ -60,16 +60,19 @@ public class RegisterActivity extends AppCompatActivity {
         registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view){
-                DatabaseScheme myDB = new DatabaseScheme (RegisterActivity.this);
-                myDB.addAuth(Integer.valueOf(dni.getText().toString().trim()),
+                String plainPassword = password.getText().toString().trim();
+                String hashedPassword = PasswordHasher.hashPassword(plainPassword);
+
+                DatabaseScheme myDB = new DatabaseScheme(RegisterActivity.this);
+                myDB.addAuth(
+                        Integer.valueOf(dni.getText().toString().trim()),
                         names.getText().toString().trim(),
                         lastNames.getText().toString().trim(),
                         date.getText().toString().trim(),
                         email.getText().toString().trim(),
-                        password.getText().toString().trim()
+                        hashedPassword
                 );
             }
-
         });
     }
 }

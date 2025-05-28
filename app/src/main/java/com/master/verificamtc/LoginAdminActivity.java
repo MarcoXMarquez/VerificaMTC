@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.content.Intent;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,6 +35,8 @@ public class LoginAdminActivity extends AppCompatActivity{
             public void onClick(View view){
                 if(username.getText().toString().equals("user") && password.getText().toString().equals("1234")){
                     Toast.makeText(LoginAdminActivity.this, "Inicio de sesion exitoso!", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(LoginAdminActivity.this, AdminListActivity.class);
+                    startActivity(intent);
                 }
                 else{
                     Toast.makeText(LoginAdminActivity.this, "Inicio de sesion fallido", Toast.LENGTH_SHORT).show();                }
