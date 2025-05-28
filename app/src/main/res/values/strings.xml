@@ -6,4 +6,8 @@
     <string name="registrado">No registrado aun? Registrese Ahora</string>
     <string name="nombres">Nombres</string>
     <string name="correo">Correo</string>
+    <string name="userlogin">Iniciar Sesión como Usuario</string>
+    <string name="adminlogin">Iniciar Sesión como Administrador</string>
+    <string name="adminloginstr">Iniciar Sesion \ncomo Administrador</string>
+    <string name="userloginstr">Iniciar Sesion como Usuario</string>
 </resources>

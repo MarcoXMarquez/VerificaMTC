@@ -3,8 +3,7 @@ package com.master.verificamtc;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
+
 import android.widget.TextView;
 import android.content.Intent;
 
@@ -15,36 +14,38 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity {
-    EditText username;
-    EditText password;
-    Button loginButton;
+    Button user_login, admin_login;
     TextView signup;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.layout_login);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        username = findViewById(R.id.username);
-        password = findViewById(R.id.password);
-        loginButton = findViewById(R.id.loginButton);
 
-        loginButton.setOnClickListener(new View.OnClickListener() {
+        user_login = findViewById(R.id.user_login_button);
+        admin_login = findViewById(R.id.admin_login_button);
+        signup= findViewById(R.id.signup);
+
+        user_login.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view){
-                if(username.getText().toString().equals("user") && password.getText().toString().equals("1234")){
-                    Toast.makeText(MainActivity.this, "Inicio de sesion exitoso!", Toast.LENGTH_SHORT).show();
-                }
-                else{
-                    Toast.makeText(MainActivity.this, "Inicio de sesion fallido", Toast.LENGTH_SHORT).show();                }
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, LoginUserActivity.class);
+                startActivity(intent);
             }
         });
 
-        signup= findViewById(R.id.signup);
+        admin_login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, LoginAdminActivity.class);
+                startActivity(intent);
+            }
+        });
 
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
