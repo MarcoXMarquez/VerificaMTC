@@ -1,8 +1,8 @@
-package com.master.verificamtc;
+package com.master.verificamtc.utils;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-public class PasswordHasher {
+public class SecurityHelper {
     public static String hashPassword(String plainPassword) {
         return BCrypt.hashpw(plainPassword, BCrypt.gensalt());
     }

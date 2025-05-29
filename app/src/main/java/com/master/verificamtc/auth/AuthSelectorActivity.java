@@ -1,4 +1,4 @@
-package com.master.verificamtc;
+package com.master.verificamtc.auth;
 
 import android.os.Bundle;
 import android.view.View;
@@ -13,7 +13,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class MainActivity extends AppCompatActivity {
+import com.master.verificamtc.R;
+
+public class AuthSelectorActivity extends AppCompatActivity {
     Button user_login, admin_login;
     TextView signup;
     @Override
@@ -34,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         user_login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, LoginUserActivity.class);
+                Intent intent = new Intent(AuthSelectorActivity.this, AuthUserActivity.class);
                 startActivity(intent);
             }
         });
@@ -42,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         admin_login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, LoginAdminActivity.class);
+                Intent intent = new Intent(AuthSelectorActivity.this, AuthAdminActivity.class);
                 startActivity(intent);
             }
         });
@@ -50,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
+                Intent intent = new Intent(AuthSelectorActivity.this, AuthRegisterActivity.class);
                 startActivity(intent);
             }
         });

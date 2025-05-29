@@ -1,4 +1,4 @@
-package com.master.verificamtc;
+package com.master.verificamtc.database;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -9,7 +9,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
-class DatabaseScheme extends SQLiteOpenHelper {
+public class AppDatabase extends SQLiteOpenHelper {
     private Context context;
     private static final String DATABASE_NAME = "Verificamtc.db";
     private static final int DATABASE_VERSION = 2; // Incrementamos la versión por los cambios
@@ -42,7 +42,7 @@ class DatabaseScheme extends SQLiteOpenHelper {
     public static final String COLUMN_PAYMENT_DATE = "payment_date";
     public static final String COLUMN_EXAM_DATE = "exam_date";
 
-    DatabaseScheme(@Nullable Context context) {
+    public AppDatabase(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.context = context;
     }
@@ -97,7 +97,7 @@ class DatabaseScheme extends SQLiteOpenHelper {
     }
 
     // Métodos para la tabla de autenticación (existente)
-    void addAuth(int id, String firstName, String lastName, String birthDate, String email, String password) {
+    public void addAuth(int id, String firstName, String lastName, String birthDate, String email, String password) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
 
@@ -137,10 +137,42 @@ class DatabaseScheme extends SQLiteOpenHelper {
         cv.put(COLUMN_MODEL, model);
         cv.put(COLUMN_YEAR, year);
 
-        long result = db.insert(TABLE_VEHICLE, null, cv);
-        return result != -1;
+        try {
+            long result = db.insert(TABLE_VEHICLE, null, cv);
+            return result != -1;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            db.close();
+        }
     }
+    public boolean updateVehicle(int userId, String color, String plate, String brand, String model, int year) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
 
+        cv.put(COLUMN_COLOR, color);
+        cv.put(COLUMN_PLATE, plate);
+        cv.put(COLUMN_BRAND, brand);
+        cv.put(COLUMN_MODEL, model);
+        cv.put(COLUMN_YEAR, year);
+
+        try {
+            int rowsAffected = db.update(
+                    TABLE_VEHICLE,
+                    cv,
+                    COLUMN_USER_ID + " = ?",
+                    new String[]{String.valueOf(userId)}
+            );
+
+            return rowsAffected > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            db.close();
+        }
+    }
     public Cursor getVehicleByUserId(int userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(

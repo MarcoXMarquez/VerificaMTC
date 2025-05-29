@@ -1,4 +1,4 @@
-package com.master.verificamtc;
+package com.master.verificamtc.auth;
 
 import android.os.Bundle;
 import android.widget.Button;
@@ -10,10 +10,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.master.verificamtc.database.AppDatabase;
+import com.master.verificamtc.utils.SecurityHelper;
+import com.master.verificamtc.R;
+
 import java.util.Calendar;
 import java.util.Locale;
 
-public class RegisterActivity extends AppCompatActivity {
+public class AuthRegisterActivity extends AppCompatActivity {
     EditText dni, names, lastNames, email, password, date;
 
     Button registerButton;
@@ -45,7 +50,7 @@ public class RegisterActivity extends AppCompatActivity {
                 int day = calendar.get(Calendar.DAY_OF_MONTH);
 
                 DatePickerDialog datePickerDialog = new DatePickerDialog(
-                        RegisterActivity.this,
+                        AuthRegisterActivity.this,
                         (view, selectedYear, selectedMonth, selectedDay) -> {
                             String fechaSeleccionada = String.format(Locale.getDefault(), "%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear);
                             date.setText(fechaSeleccionada);
@@ -61,9 +66,9 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             public void onClick(View view){
                 String plainPassword = password.getText().toString().trim();
-                String hashedPassword = PasswordHasher.hashPassword(plainPassword);
+                String hashedPassword = SecurityHelper.hashPassword(plainPassword);
 
-                DatabaseScheme myDB = new DatabaseScheme(RegisterActivity.this);
+                AppDatabase myDB = new AppDatabase(AuthRegisterActivity.this);
                 myDB.addAuth(
                         Integer.valueOf(dni.getText().toString().trim()),
                         names.getText().toString().trim(),

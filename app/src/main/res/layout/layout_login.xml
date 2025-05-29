@@ -8,7 +8,7 @@
     android:orientation="vertical"
     android:gravity="center"
     android:background="@drawable/loginbackground"
-    tools:context=".MainActivity">
+    tools:context=".auth.AuthSelectorActivity">
 
     <View
         android:layout_width="match_parent"

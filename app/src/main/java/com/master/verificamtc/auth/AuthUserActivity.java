@@ -1,4 +1,4 @@
-package com.master.verificamtc;
+package com.master.verificamtc.auth;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -14,12 +14,17 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class LoginUserActivity extends AppCompatActivity {
+import com.master.verificamtc.database.AppDatabase;
+import com.master.verificamtc.utils.SecurityHelper;
+import com.master.verificamtc.R;
+import com.master.verificamtc.user.dashboard.UserDashboardActivity;
+
+public class AuthUserActivity extends AppCompatActivity {
     EditText username; // Este será el DNI
     EditText password;
     Button loginButton;
     TextView signup;
-    DatabaseScheme dbHelper;
+    AppDatabase dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +32,7 @@ public class LoginUserActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_userlogin);
 
-        dbHelper = new DatabaseScheme(this);
+        dbHelper = new AppDatabase(this);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.userlogin), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -47,23 +52,23 @@ public class LoginUserActivity extends AppCompatActivity {
                 String inputPassword = password.getText().toString().trim();
 
                 if (dni.isEmpty() || inputPassword.isEmpty()) {
-                    Toast.makeText(LoginUserActivity.this, "DNI y contraseña requeridos", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AuthUserActivity.this, "DNI y contraseña requeridos", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
                 try {
                     int userId = Integer.parseInt(dni);
                     if (authenticateUser(userId, inputPassword)) {
-                        Toast.makeText(LoginUserActivity.this, "Inicio de sesión exitoso!", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(LoginUserActivity.this, UserLobbyActivity.class);
+                        Toast.makeText(AuthUserActivity.this, "Inicio de sesión exitoso!", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(AuthUserActivity.this, UserDashboardActivity.class);
                         intent.putExtra("USER_ID", userId); // Pasamos el ID del usuario
                         startActivity(intent);
                         finish(); // Cierra la actividad de login
                     } else {
-                        Toast.makeText(LoginUserActivity.this, "DNI o contraseña incorrectos", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AuthUserActivity.this, "DNI o contraseña incorrectos", Toast.LENGTH_SHORT).show();
                     }
                 } catch (NumberFormatException e) {
-                    Toast.makeText(LoginUserActivity.this, "DNI debe ser numérico", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AuthUserActivity.this, "DNI debe ser numérico", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -71,7 +76,7 @@ public class LoginUserActivity extends AppCompatActivity {
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(LoginUserActivity.this, RegisterActivity.class));
+                startActivity(new Intent(AuthUserActivity.this, AuthRegisterActivity.class));
             }
         });
     }
@@ -79,20 +84,20 @@ public class LoginUserActivity extends AppCompatActivity {
     private boolean authenticateUser(int dni, String inputPassword) {
         // 1. Obtener el usuario de la base de datos
         Cursor cursor = dbHelper.getReadableDatabase().query(
-                DatabaseScheme.TABLE_AUTH,
-                new String[]{DatabaseScheme.COLUMN_ID, DatabaseScheme.COLUMN_PASSWORD},
-                DatabaseScheme.COLUMN_ID + " = ?",
+                AppDatabase.TABLE_AUTH,
+                new String[]{AppDatabase.COLUMN_ID, AppDatabase.COLUMN_PASSWORD},
+                AppDatabase.COLUMN_ID + " = ?",
                 new String[]{String.valueOf(dni)},
                 null, null, null
         );
 
         if (cursor != null && cursor.moveToFirst()) {
             // 2. Obtener el hash almacenado
-            String storedHash = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseScheme.COLUMN_PASSWORD));
+            String storedHash = cursor.getString(cursor.getColumnIndexOrThrow(AppDatabase.COLUMN_PASSWORD));
             cursor.close();
 
             // 3. Verificar la contraseña
-            return PasswordHasher.checkPassword(inputPassword, storedHash);
+            return SecurityHelper.checkPassword(inputPassword, storedHash);
         }
 
         if (cursor != null) {

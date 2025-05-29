@@ -1,4 +1,4 @@
-package com.master.verificamtc;
+package com.master.verificamtc.user.vehicle;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
@@ -6,11 +6,15 @@ import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
+import com.master.verificamtc.auth.AuthRegisterActivity;
+import com.master.verificamtc.database.AppDatabase;
+import com.master.verificamtc.R;
+import com.master.verificamtc.utils.SecurityHelper;
 
-public class VehicleDataActivity extends AppCompatActivity {
+public class UserVehicleActivity extends AppCompatActivity {
     private TextInputEditText etPlate, etColor, etBrand, etModel, etYear;
     private Button btnSave;
-    private DatabaseScheme dbHelper;
+    private AppDatabase dbHelper;
     private int userId;
 
     @Override
@@ -20,7 +24,7 @@ public class VehicleDataActivity extends AppCompatActivity {
 
         // Obtener el ID del usuario del Intent
         userId = getIntent().getIntExtra("USER_ID", -1);
-        dbHelper = new DatabaseScheme(this);
+        dbHelper = new AppDatabase(this);
 
         // Inicializar vistas
         etPlate = findViewById(R.id.etPlate);
@@ -33,22 +37,22 @@ public class VehicleDataActivity extends AppCompatActivity {
         // Cargar datos existentes si existen
         loadExistingVehicleData();
 
-        //btnSave.setOnClickListener(v -> saveVehicleData());
+        btnSave.setOnClickListener(v -> saveVehicleData());
     }
 
     private void loadExistingVehicleData() {
         Cursor cursor = dbHelper.getVehicleByUserId(userId);
         if (cursor != null && cursor.moveToFirst()) {
-            etPlate.setText(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseScheme.COLUMN_PLATE)));
-            etColor.setText(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseScheme.COLUMN_COLOR)));
-            etBrand.setText(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseScheme.COLUMN_BRAND)));
-            etModel.setText(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseScheme.COLUMN_MODEL)));
-            etYear.setText(String.valueOf(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseScheme.COLUMN_YEAR))));
+            etPlate.setText(cursor.getString(cursor.getColumnIndexOrThrow(AppDatabase.COLUMN_PLATE)));
+            etColor.setText(cursor.getString(cursor.getColumnIndexOrThrow(AppDatabase.COLUMN_COLOR)));
+            etBrand.setText(cursor.getString(cursor.getColumnIndexOrThrow(AppDatabase.COLUMN_BRAND)));
+            etModel.setText(cursor.getString(cursor.getColumnIndexOrThrow(AppDatabase.COLUMN_MODEL)));
+            etYear.setText(String.valueOf(cursor.getInt(cursor.getColumnIndexOrThrow(AppDatabase.COLUMN_YEAR))));
             cursor.close();
         }
     }
 
-    /*private void saveVehicleData() {
+    private void saveVehicleData() {
         String plate = etPlate.getText().toString().trim().toUpperCase();
         String color = etColor.getText().toString().trim();
         String brand = etBrand.getText().toString().trim();
@@ -66,7 +70,7 @@ public class VehicleDataActivity extends AppCompatActivity {
             // Verificar si ya existe un vehículo para actualizar o crear nuevo
             boolean success;
             if (dbHelper.getVehicleByUserId(userId).getCount() > 0) {
-                //success = dbHelper.updateVehicle(userId, color, plate, brand, model, year);
+                success = dbHelper.updateVehicle(userId, color, plate, brand, model, year);
             } else {
                 success = dbHelper.addVehicle(userId, color, plate, brand, model, year);
             }
@@ -80,7 +84,7 @@ public class VehicleDataActivity extends AppCompatActivity {
         } catch (NumberFormatException e) {
             Toast.makeText(this, "El año debe ser un número válido", Toast.LENGTH_SHORT).show();
         }
-    }*/
+    }
 
     @Override
     protected void onDestroy() {

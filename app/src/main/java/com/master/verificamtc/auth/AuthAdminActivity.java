@@ -1,4 +1,4 @@
-package com.master.verificamtc;
+package com.master.verificamtc.auth;
 
 import android.os.Bundle;
 import android.view.View;
@@ -12,7 +12,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-public class LoginAdminActivity extends AppCompatActivity{
+
+import com.master.verificamtc.admin.dashboard.AdminDashboardActivity;
+import com.master.verificamtc.R;
+
+public class AuthAdminActivity extends AppCompatActivity{
     EditText username, password;
     Button loginButton;
     @Override
@@ -34,12 +38,12 @@ public class LoginAdminActivity extends AppCompatActivity{
             @Override
             public void onClick(View view){
                 if(username.getText().toString().equals("user") && password.getText().toString().equals("1234")){
-                    Toast.makeText(LoginAdminActivity.this, "Inicio de sesion exitoso!", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(LoginAdminActivity.this, AdminListActivity.class);
+                    Toast.makeText(AuthAdminActivity.this, "Inicio de sesion exitoso!", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(AuthAdminActivity.this, AdminDashboardActivity.class);
                     startActivity(intent);
                 }
                 else{
-                    Toast.makeText(LoginAdminActivity.this, "Inicio de sesion fallido", Toast.LENGTH_SHORT).show();                }
+                    Toast.makeText(AuthAdminActivity.this, "Inicio de sesion fallido", Toast.LENGTH_SHORT).show();                }
             }
         });
 

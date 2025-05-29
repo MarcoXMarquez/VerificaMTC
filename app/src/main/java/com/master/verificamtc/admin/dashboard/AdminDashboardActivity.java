@@ -1,4 +1,4 @@
-package com.master.verificamtc;
+package com.master.verificamtc.admin.dashboard;
 
 import android.database.Cursor;
 import android.os.Bundle;
@@ -8,11 +8,14 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.master.verificamtc.database.AppDatabase;
+import com.master.verificamtc.R;
+
 import java.util.ArrayList;
 
-public class AdminListActivity extends AppCompatActivity {
+public class AdminDashboardActivity extends AppCompatActivity {
     private ListView userListView;
-    private DatabaseScheme databaseHelper;
+    private AppDatabase databaseHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,7 +23,7 @@ public class AdminListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_user_list);
 
         userListView = findViewById(R.id.userListView);
-        databaseHelper = new DatabaseScheme(this);
+        databaseHelper = new AppDatabase(this);
 
         displayUserList();
     }
