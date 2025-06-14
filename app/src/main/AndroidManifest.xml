@@ -39,6 +39,9 @@
         <activity
             android:name=".user.vehicle.UserVehicleActivity"
             android:exported="true"/>
+        <activity
+            android:name=".user.exam.UserExamActivity"
+            android:exported="true"/>
 
 
     </application>
