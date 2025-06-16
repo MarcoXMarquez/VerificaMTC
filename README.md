@@ -45,9 +45,3 @@ Sistema móvil para optimizar la verificación de identidad en los exámenes de 
 - RF01: Registro con validación RENIEC (Alta)
 - RF02: Autenticación biométrica (Alta)
 - RF03: Integración con formularios MTC (Alta)
-
-### No Funcionales
-```markdown
-- RNF01: Usabilidad (Alta)
-- RNF02: Seguridad de datos (Alta)
-- RNF05: Compatibilidad multiplataforma (Alta)
