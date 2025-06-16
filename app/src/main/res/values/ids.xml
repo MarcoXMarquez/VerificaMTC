@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="etUserId" type="id" />
+    <item name="etLastName" type="id" />
+    <item name="etBirthDate" type="id" />
+    <item name="etEmail" type="id" />
+    <item name="etPassword" type="id" />
+    <item name="btnAddUser" type="id" />
+    <item name="btnGetUsers" type="id" />
+    <item name="btnUpdatePayment" type="id" />
+    <item name="tvUsers" type="id" />
+</resources>

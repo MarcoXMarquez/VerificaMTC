@@ -1,30 +1,38 @@
 package com.master.verificamtc.auth;
 
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.master.verificamtc.database.AppDatabase;
-import com.master.verificamtc.utils.SecurityHelper;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.master.verificamtc.R;
 import com.master.verificamtc.user.dashboard.UserDashboardActivity;
+import com.master.verificamtc.utils.SecurityHelper;
 
 public class AuthUserActivity extends AppCompatActivity {
-    EditText username; // Este será el DNI
-    EditText password;
-    Button loginButton;
-    TextView signup;
-    AppDatabase dbHelper;
+    private EditText username; // DNI o email
+    private EditText password;
+    private Button loginButton;
+    private TextView signup;
+
+    private FirebaseAuth mAuth;
+    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +40,9 @@ public class AuthUserActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_userlogin);
 
-        dbHelper = new AppDatabase(this);
+        // Inicializar Firebase Auth y Database
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.userlogin), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -45,70 +55,116 @@ public class AuthUserActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.loginButton);
         signup = findViewById(R.id.signup);
 
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String dni = username.getText().toString().trim();
-                String inputPassword = password.getText().toString().trim();
+        loginButton.setOnClickListener(view -> {
+            String dniEmail = username.getText().toString().trim();
+            String inputPassword = password.getText().toString().trim();
 
-                if (dni.isEmpty() || inputPassword.isEmpty()) {
-                    Toast.makeText(AuthUserActivity.this, "DNI y contraseña requeridos", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                try {
-                    int userId = Integer.parseInt(dni);
-                    if (authenticateUser(userId, inputPassword)) {
-                        Toast.makeText(AuthUserActivity.this, "Inicio de sesión exitoso!", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(AuthUserActivity.this, UserDashboardActivity.class);
-                        intent.putExtra("USER_ID", userId); // Pasamos el ID del usuario
-                        startActivity(intent);
-                        finish(); // Cierra la actividad de login
-                    } else {
-                        Toast.makeText(AuthUserActivity.this, "DNI o contraseña incorrectos", Toast.LENGTH_SHORT).show();
-                    }
-                } catch (NumberFormatException e) {
-                    Toast.makeText(AuthUserActivity.this, "DNI debe ser numérico", Toast.LENGTH_SHORT).show();
-                }
+            if (dniEmail.isEmpty() || inputPassword.isEmpty()) {
+                Toast.makeText(AuthUserActivity.this, "DNI/Email y contraseña requeridos", Toast.LENGTH_SHORT).show();
+                return;
             }
+
+            // Autenticar usando DNI (almacenado en Firebase) o email
+            authenticateUser(dniEmail, inputPassword);
         });
 
-        signup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(AuthUserActivity.this, AuthRegisterActivity.class));
-            }
+        signup.setOnClickListener(view -> {
+            startActivity(new Intent(AuthUserActivity.this, AuthRegisterActivity.class));
         });
     }
 
-    private boolean authenticateUser(int dni, String inputPassword) {
-        // 1. Obtener el usuario de la base de datos
-        Cursor cursor = dbHelper.getReadableDatabase().query(
-                AppDatabase.TABLE_AUTH,
-                new String[]{AppDatabase.COLUMN_ID, AppDatabase.COLUMN_PASSWORD},
-                AppDatabase.COLUMN_ID + " = ?",
-                new String[]{String.valueOf(dni)},
-                null, null, null
-        );
+    private void authenticateUser(String dniEmail, String inputPassword) {
+        // Primero intentamos encontrar el usuario por DNI o email
+        mDatabase.child("users")
+                .orderByChild("dni") // Asume que guardas el DNI en un campo 'dni'
+                .equalTo(dniEmail)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            // Usuario encontrado por DNI
+                            for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                                String email = userSnapshot.child("email").getValue(String.class);
+                                if (email != null) {
+                                    // Autenticar con Firebase Auth usando el email
+                                    signInWithEmailPassword(email, inputPassword,
+                                            userSnapshot.getKey());
+                                }
+                            }
+                        } else {
+                            // Si no se encuentra por DNI, asumimos que es un email
+                            signInWithEmailPassword(dniEmail, inputPassword, null);
+                        }
+                    }
 
-        if (cursor != null && cursor.moveToFirst()) {
-            // 2. Obtener el hash almacenado
-            String storedHash = cursor.getString(cursor.getColumnIndexOrThrow(AppDatabase.COLUMN_PASSWORD));
-            cursor.close();
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Toast.makeText(AuthUserActivity.this,
+                                "Error de conexión: " + databaseError.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
 
-            // 3. Verificar la contraseña
-            return SecurityHelper.checkPassword(inputPassword, storedHash);
-        }
+    private void signInWithEmailPassword(String email, String password, String userId) {
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            // Si no tenemos el userId (cuando se autentica por email)
+                            if (userId == null) {
+                                getUserIdByEmail(user.getEmail());
+                            } else {
+                                proceedToDashboard(userId);
+                            }
+                        }
+                    } else {
+                        Toast.makeText(AuthUserActivity.this,
+                                task.getException().getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
 
-        if (cursor != null) {
-            cursor.close();
-        }
-        return false;
+    private void getUserIdByEmail(String email) {
+        mDatabase.child("users")
+                .orderByChild("email")
+                .equalTo(email)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                                proceedToDashboard(userSnapshot.getKey());
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Toast.makeText(AuthUserActivity.this,
+                                "Error al obtener datos de usuario",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void proceedToDashboard(String userId) {
+        Toast.makeText(AuthUserActivity.this, "Inicio de sesión exitoso!", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(AuthUserActivity.this, UserDashboardActivity.class);
+        intent.putExtra("USER_ID", userId);
+        startActivity(intent);
+        finish();
     }
 
     @Override
-    protected void onDestroy() {
-        dbHelper.close();
-        super.onDestroy();
+    protected void onStart() {
+        super.onStart();
+        // Verificar si el usuario ya está logueado
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            getUserIdByEmail(currentUser.getEmail());
+        }
     }
 }
