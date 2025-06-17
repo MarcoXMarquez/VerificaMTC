@@ -36,17 +36,31 @@ android {
 }
 
 dependencies {
-    implementation(libs.jbcrypt)
-    implementation(libs.appcompat)
-    implementation(libs.material)
-    implementation(libs.activity)
-    implementation(libs.constraintlayout)
-    implementation(libs.firebase.analytics)
-    implementation(libs.firebase.authentication)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.database)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core)
+    // Seguridad
+    implementation(libs.jbcrypt) // Encriptación de contraseñas
 
+    // UI Android
+    implementation(libs.appcompat) // Compatibilidad
+    implementation(libs.material) // Diseño Material
+    implementation(libs.constraintlayout) // Layouts
+
+    // Firebase
+    implementation(libs.firebase.analytics) // Métricas
+    implementation(libs.firebase.authentication) // Login
+    implementation(platform(libs.firebase.bom)) // Gestión de versiones
+    implementation(libs.firebase.database) // Base de datos
+
+    // Reconocimiento Facial
+    implementation(libs.firebase.ml.vision) // Procesamiento de imágenes
+    implementation(libs.firebase.ml.face.model) // Modelo facial
+
+    // Cámara
+    implementation(libs.camera.camera2) // Núcleo cámara
+    implementation(libs.camera.lifecycle) // Ciclo de vida
+    implementation(libs.camera.view) // Vista previa
+
+    // Testing
+    testImplementation(libs.junit) // Pruebas unitarias
+    androidTestImplementation(libs.ext.junit) // Pruebas Android
+    androidTestImplementation(libs.espresso.core) // Pruebas UI
 }
