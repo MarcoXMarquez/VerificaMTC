@@ -1,88 +1,102 @@
 package com.master.verificamtc.user.dashboard;
 
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.master.verificamtc.R;
+import com.master.verificamtc.database.FirebaseDatabaseHelper;
 import com.master.verificamtc.user.circuit.UserCircuitActivity;
-import com.master.verificamtc.database.AppDatabase;
 import com.master.verificamtc.user.exam.UserExamActivity;
 import com.master.verificamtc.user.payment.UserPaymentActivity;
-import com.master.verificamtc.R;
 import com.master.verificamtc.user.vehicle.UserVehicleActivity;
 
 public class UserDashboardActivity extends AppCompatActivity {
-    private AppDatabase dbHelper;
-    private int userId;
+    private DatabaseReference mDatabase;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_lobby);
 
-        // Obtener el ID del usuario del Intent
-        userId = getIntent().getIntExtra("USER_ID", -1);
-        dbHelper = new AppDatabase(this);
+        // Get user ID from Intent
+        userId = getIntent().getStringExtra("USER_ID");
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        // Cargar datos del usuario
+        // Load user data from Firebase
         loadUserData();
     }
 
     private void loadUserData() {
-        // 1. Obtener datos básicos del usuario
-        Cursor userCursor = dbHelper.getReadableDatabase().query(
-                AppDatabase.TABLE_AUTH,
-                new String[]{AppDatabase.COLUMN_NAMES, AppDatabase.COLUMN_LASTNAMES},
-                AppDatabase.COLUMN_ID + " = ?",
-                new String[]{String.valueOf(userId)},
-                null, null, null
-        );
+        // 1. Get basic user data
+        mDatabase.child("users").child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot userSnapshot) {
+                if (userSnapshot.exists()) {
+                    FirebaseDatabaseHelper.User user = userSnapshot.getValue(FirebaseDatabaseHelper.User.class);
+                    if (user != null) {
+                        TextView tvWelcome = findViewById(R.id.tvWelcome);
+                        tvWelcome.setText("Bienvenido, " + user.firstName + " " + user.lastName);
 
-        // 2. Obtener datos del vehículo
-        Cursor vehicleCursor = dbHelper.getVehicleByUserId(userId);
+                        // Now load vehicle data
+                        loadVehicleData(user);
+                    }
+                } else {
+                    Toast.makeText(UserDashboardActivity.this, "Usuario no encontrado", Toast.LENGTH_SHORT).show();
+                }
+            }
 
-        // 3. Obtener estado del trámite
-        Cursor statusCursor = dbHelper.getUserStatus(userId);
-
-        // Configurar la UI con los datos
-        TextView tvWelcome = findViewById(R.id.tvWelcome);
-        TextView tvUserInfo = findViewById(R.id.tvUserInfo);
-        TextView tvStatus = findViewById(R.id.tvStatus);
-
-        if (userCursor != null && userCursor.moveToFirst()) {
-            String firstName = userCursor.getString(userCursor.getColumnIndexOrThrow(AppDatabase.COLUMN_NAMES));
-            String lastName = userCursor.getString(userCursor.getColumnIndexOrThrow(AppDatabase.COLUMN_LASTNAMES));
-            tvWelcome.setText("Bienvenido, " + firstName + " " + lastName);
-            userCursor.close();
-        }
-
-        String vehicleInfo = "Vehículo: No registrado";
-        if (vehicleCursor != null && vehicleCursor.moveToFirst()) {
-            String brand = vehicleCursor.getString(vehicleCursor.getColumnIndexOrThrow(AppDatabase.COLUMN_BRAND));
-            String plate = vehicleCursor.getString(vehicleCursor.getColumnIndexOrThrow(AppDatabase.COLUMN_PLATE));
-            vehicleInfo = "Vehículo: " + brand + " - Placa " + plate;
-            vehicleCursor.close();
-        }
-
-        String statusInfo = "Estado: Pendiente de registro";
-        if (statusCursor != null && statusCursor.moveToFirst()) {
-            int hasPaid = statusCursor.getInt(statusCursor.getColumnIndexOrThrow(AppDatabase.COLUMN_HAS_PAID));
-            int writtenPassed = statusCursor.getInt(statusCursor.getColumnIndexOrThrow(AppDatabase.COLUMN_WRITTEN_EXAM_PASSED));
-
-            statusInfo = "Estado: " +
-                    (hasPaid == 1 ? "Pago completado" : "Pago pendiente") + " | " +
-                    (writtenPassed == 1 ? "Examen aprobado" : "Examen pendiente");
-            statusCursor.close();
-        }
-
-        tvUserInfo.setText(vehicleInfo + "\n" + statusInfo);
-        tvStatus.setText(statusInfo);
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(UserDashboardActivity.this, "Error al cargar datos: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    // Métodos para los clicks de los botones (actualizados para pasar userId)
+    private void loadVehicleData(FirebaseDatabaseHelper.User user) {
+        mDatabase.child("cars").orderByChild("userId").equalTo(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot vehicleSnapshot) {
+                TextView tvUserInfo = findViewById(R.id.tvUserInfo);
+                TextView tvStatus = findViewById(R.id.tvStatus);
+
+                String vehicleInfo = "Vehículo: No registrado";
+                if (vehicleSnapshot.exists()) {
+                    for (DataSnapshot carSnapshot : vehicleSnapshot.getChildren()) {
+                        FirebaseDatabaseHelper.Car car = carSnapshot.getValue(FirebaseDatabaseHelper.Car.class);
+                        if (car != null) {
+                            vehicleInfo = "Vehículo: " + car.brand + " - Placa " + car.plate;
+                            break;
+                        }
+                    }
+                }
+
+                String statusInfo = "Estado: " +
+                        (user.paymentStatus ? "Pago completado" : "Pago pendiente") + " | " +
+                        (user.writtenExamPassed ? "Examen aprobado" : "Examen pendiente");
+
+                tvUserInfo.setText(vehicleInfo + "\n" + statusInfo);
+                tvStatus.setText(statusInfo);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(UserDashboardActivity.this, "Error al cargar vehículo: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // Button click methods (updated to pass userId)
     public void goToExam(View view) {
         Intent intent = new Intent(this, UserExamActivity.class);
         intent.putExtra("USER_ID", userId);
@@ -109,7 +123,7 @@ public class UserDashboardActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        dbHelper.close();
+        // No need to close database connection in Firebase
         super.onDestroy();
     }
 }

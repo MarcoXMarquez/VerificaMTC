@@ -12,30 +12,43 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.VerificaMTC"
         tools:targetApi="31">
+
+        <!-- Main Launcher Activity -->
         <activity
-            android:name=".auth.AuthRegisterActivity"
-            android:exported="true"/>
-        <activity
-            android:name=".auth.AuthUserActivity"
+            android:name=".auth.AuthSelectorActivity"
             android:exported="true">
             <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-    </intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
+
+        <!-- Authentication Activities -->
         <activity
-            android:name=".auth.AuthAdminActivity"
-            android:exported="true"/>
-        <activity
-            android:name=".admin.dashboard.AdminDashboardActivity"
-            android:exported="true"/>
-        <activity
-            android:name=".user.dashboard.UserDashboardActivity"
-            android:exported="true"/>
-        <activity
-            android:name=".user.vehicle.UserVehicleActivity"
+            android:name=".auth.AuthUserActivity"
             android:exported="true"/>
 
+        <activity
+            android:name=".auth.AuthRegisterActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".auth.AuthAdminActivity"
+            android:exported="true" />
+
+        <!-- Dashboard Activities -->
+        <activity
+            android:name=".admin.dashboard.AdminDashboardActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".user.dashboard.UserDashboardActivity"
+            android:exported="true" />
+
+        <!-- Other Activities -->
+        <activity
+            android:name=".user.vehicle.UserVehicleActivity"
+            android:exported="true" />
 
     </application>
 

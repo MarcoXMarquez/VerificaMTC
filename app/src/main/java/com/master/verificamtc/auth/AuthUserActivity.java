@@ -2,7 +2,7 @@ package com.master.verificamtc.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -26,7 +26,7 @@ import com.master.verificamtc.user.dashboard.UserDashboardActivity;
 import com.master.verificamtc.utils.SecurityHelper;
 
 public class AuthUserActivity extends AppCompatActivity {
-    private EditText username; // DNI o email
+    private EditText username;
     private EditText password;
     private Button loginButton;
     private TextView signup;
@@ -36,11 +36,14 @@ public class AuthUserActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Initialize Firebase persistence FIRST
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_userlogin);
 
-        // Inicializar Firebase Auth y Database
+        // Initialize Firebase components
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
@@ -50,50 +53,85 @@ public class AuthUserActivity extends AppCompatActivity {
             return insets;
         });
 
+        // Initialize UI components
         username = findViewById(R.id.username);
         password = findViewById(R.id.password);
         loginButton = findViewById(R.id.loginButton);
-        signup = findViewById(R.id.signup);
+        signup = findViewById(R.id.signup_user);
 
+        if (username == null || password == null || loginButton == null || signup == null) {
+            Toast.makeText(this, "Error initializing UI components", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
+        setupLoginButton();
+        setupSignupButton();
+    }
+
+    private void setupLoginButton() {
         loginButton.setOnClickListener(view -> {
-            String dniEmail = username.getText().toString().trim();
+            String dni = username.getText().toString().trim();
             String inputPassword = password.getText().toString().trim();
 
-            if (dniEmail.isEmpty() || inputPassword.isEmpty()) {
-                Toast.makeText(AuthUserActivity.this, "DNI/Email y contraseña requeridos", Toast.LENGTH_SHORT).show();
+            if (dni.isEmpty() || inputPassword.isEmpty()) {
+                Toast.makeText(AuthUserActivity.this, "DNI y contraseña requeridos", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Autenticar usando DNI (almacenado en Firebase) o email
-            authenticateUser(dniEmail, inputPassword);
-        });
+            if (!dni.matches("\\d{8}")) {
+                Toast.makeText(AuthUserActivity.this, "DNI debe tener 8 dígitos", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-        signup.setOnClickListener(view -> {
-            startActivity(new Intent(AuthUserActivity.this, AuthRegisterActivity.class));
+            authenticateUser(dni, inputPassword);
         });
     }
 
-    private void authenticateUser(String dniEmail, String inputPassword) {
-        // Primero intentamos encontrar el usuario por DNI o email
+    private void setupSignupButton() {
+        signup.setOnClickListener(view -> {
+            try {
+                Intent intent = new Intent(AuthUserActivity.this, AuthRegisterActivity.class);
+                startActivity(intent);
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            } catch (Exception e) {
+                Log.e("AuthUserActivity", "Signup Error", e);
+                Toast.makeText(AuthUserActivity.this,
+                        "Error al abrir registro: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void authenticateUser(String dni, String inputPassword) {
         mDatabase.child("users")
-                .orderByChild("dni") // Asume que guardas el DNI en un campo 'dni'
-                .equalTo(dniEmail)
+                .orderByChild("dni")
+                .equalTo(dni)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists()) {
-                            // Usuario encontrado por DNI
                             for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                                String email = userSnapshot.child("email").getValue(String.class);
-                                if (email != null) {
-                                    // Autenticar con Firebase Auth usando el email
-                                    signInWithEmailPassword(email, inputPassword,
-                                            userSnapshot.getKey());
+                                String storedPassword = userSnapshot.child("password").getValue(String.class);
+                                if (storedPassword == null) {
+                                    Toast.makeText(AuthUserActivity.this,
+                                            "Error en los datos del usuario",
+                                            Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+
+                                if (SecurityHelper.checkPassword(inputPassword, storedPassword)) {
+                                    proceedToDashboard(userSnapshot.getKey());
+                                } else {
+                                    Toast.makeText(AuthUserActivity.this,
+                                            "Contraseña incorrecta",
+                                            Toast.LENGTH_SHORT).show();
                                 }
                             }
                         } else {
-                            // Si no se encuentra por DNI, asumimos que es un email
-                            signInWithEmailPassword(dniEmail, inputPassword, null);
+                            Toast.makeText(AuthUserActivity.this,
+                                    "Usuario no encontrado",
+                                    Toast.LENGTH_SHORT).show();
                         }
                     }
 
@@ -106,53 +144,9 @@ public class AuthUserActivity extends AppCompatActivity {
                 });
     }
 
-    private void signInWithEmailPassword(String email, String password, String userId) {
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        if (user != null) {
-                            // Si no tenemos el userId (cuando se autentica por email)
-                            if (userId == null) {
-                                getUserIdByEmail(user.getEmail());
-                            } else {
-                                proceedToDashboard(userId);
-                            }
-                        }
-                    } else {
-                        Toast.makeText(AuthUserActivity.this,
-                                task.getException().getMessage(),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
-    private void getUserIdByEmail(String email) {
-        mDatabase.child("users")
-                .orderByChild("email")
-                .equalTo(email)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                                proceedToDashboard(userSnapshot.getKey());
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        Toast.makeText(AuthUserActivity.this,
-                                "Error al obtener datos de usuario",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
     private void proceedToDashboard(String userId) {
-        Toast.makeText(AuthUserActivity.this, "Inicio de sesión exitoso!", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(AuthUserActivity.this, UserDashboardActivity.class);
+        Toast.makeText(this, "Inicio de sesión exitoso!", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, UserDashboardActivity.class);
         intent.putExtra("USER_ID", userId);
         startActivity(intent);
         finish();
@@ -161,10 +155,29 @@ public class AuthUserActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // Verificar si el usuario ya está logueado
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            getUserIdByEmail(currentUser.getEmail());
+            // User is already logged in, redirect to dashboard
+            mDatabase.child("users")
+                    .orderByChild("email")
+                    .equalTo(currentUser.getEmail())
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.exists()) {
+                                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                    proceedToDashboard(snapshot.getKey());
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Toast.makeText(AuthUserActivity.this,
+                                    "Error al verificar usuario",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
     }
 }

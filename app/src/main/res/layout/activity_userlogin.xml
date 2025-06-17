@@ -83,7 +83,7 @@ android:background="@drawable/loginbackground"
 </androidx.cardview.widget.CardView>
 
 <TextView
-    android:id="@+id/signup"
+    android:id="@+id/signup_user"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_marginBottom="20dp"
@@ -94,6 +94,7 @@ android:background="@drawable/loginbackground"
     android:text="@string/registrado"
     android:textAlignment="center"
     android:textColor="@color/red"
-    android:textSize="14sp" />
+    android:textSize="14sp"
+    />
 
 </LinearLayout>

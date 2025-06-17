@@ -15,13 +15,15 @@ public class FirebaseDatabaseHelper {
         database = FirebaseDatabase.getInstance().getReference();
     }
     public static class User {
-        public String userId, firstName , lastName,  birthDate, email, password;
+        public String dni; // Cambiamos userId por dni
+        public String firstName, lastName, birthDate, email, password;
         public boolean paymentStatus, writtenExamPassed, drivingExamPassed;
 
         public User() {} // Constructor vacío requerido por Firebase
-        public User(String userId, String firstName, String lastName,
+
+        public User(String dni, String firstName, String lastName,
                     String birthDate, String email, String password) {
-            this.userId = userId;
+            this.dni = dni;
             this.firstName = firstName;
             this.lastName = lastName;
             this.birthDate = birthDate;
@@ -78,18 +80,23 @@ public class FirebaseDatabaseHelper {
 
     // Metodo para añadir un usuario
 
-    public void addUser(String userId, String firstName, String lastName,
+    public void addUser(String dni, String firstName, String lastName,
                         String birthDate, String email, String hashedPassword) {
+        // Verificar que el DNI tenga 8 dígitos
+        if (!dni.matches("\\d{8}")) {
+            throw new IllegalArgumentException("DNI debe tener 8 dígitos");
+        }
+
         // Verificación adicional del hash
         if (!hashedPassword.startsWith("$2a$")) {
             throw new SecurityException("Formato de hash inválido");
         }
 
-        User newUser = new User(userId, firstName, lastName, birthDate, email, hashedPassword);
+        // Usamos el DNI como ID principal
+        User newUser = new User(dni, firstName, lastName, birthDate, email, hashedPassword);
 
-        database.child("users").child(userId).setValue(newUser)
+        database.child("users").child(dni).setValue(newUser)
                 .addOnSuccessListener(aVoid -> {
-                    // Registro exitoso
                     Toast.makeText(context, "Registro completado", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
