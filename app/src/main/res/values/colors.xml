@@ -12,4 +12,10 @@
     <color name="text_primary">#212121</color>
     <color name="text_secondary">#757575</color>
     <color name="card_shadow">#1E000000</color> <!-- Negro con 12% opacidad -->
+    <!-- Nuevos colores para la tarjeta Visa -->
+    <color name="visa_blue_dark">#1A237E</color>
+    <color name="visa_blue_light">#283593</color>
+    <color name="card_text_white">#FFFFFF</color>
+    <color name="card_hint_white">#B3FFFFFF</color> <!-- Blanco al 70% opacidad -->
+    <color name="error_red">#951239</color> <!-- Reutilizando tu color red -->
 </resources>

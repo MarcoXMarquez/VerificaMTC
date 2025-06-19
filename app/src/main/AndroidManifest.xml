@@ -39,8 +39,9 @@
         <activity
             android:name=".user.vehicle.UserVehicleActivity"
             android:exported="true"/>
-
-
+        <activity
+            android:name=".user.payment.PaymentActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
