@@ -42,6 +42,12 @@ public class AppDatabase extends SQLiteOpenHelper {
     public static final String COLUMN_PAYMENT_DATE = "payment_date";
     public static final String COLUMN_EXAM_DATE = "exam_date";
 
+    // Nueva tabla: Horarios
+    public static final String TABLE_SCHEDULES = "schedules";
+    public static final String COLUMN_SCHEDULE_ID = "schedule_id";
+    public static final String COLUMN_SCHEDULE_DATE = "fecha";
+    public static final String COLUMN_SCHEDULE_TIME = "hora";
+
     public AppDatabase(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.context = context;
@@ -58,6 +64,7 @@ public class AppDatabase extends SQLiteOpenHelper {
                 COLUMN_EMAIL + " TEXT UNIQUE, " +
                 COLUMN_PASSWORD + " TEXT NOT NULL" +
                 ");";
+        db.execSQL(createAuthTable);
 
         // Crear tabla de vehículo
         String createVehicleTable = "CREATE TABLE " + TABLE_VEHICLE + " (" +
@@ -70,29 +77,36 @@ public class AppDatabase extends SQLiteOpenHelper {
                 COLUMN_YEAR + " INTEGER, " +
                 "FOREIGN KEY(" + COLUMN_USER_ID + ") REFERENCES " + TABLE_AUTH + "(" + COLUMN_ID + ")" +
                 ");";
+        db.execSQL(createVehicleTable);
 
         // Crear tabla de estado
         String createStatusTable = "CREATE TABLE " + TABLE_STATUS + " (" +
                 COLUMN_STATUS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_USER_ID + " INTEGER NOT NULL UNIQUE, " +
-                COLUMN_HAS_PAID + " INTEGER DEFAULT 0, " + // 0 = false, 1 = true
+                COLUMN_HAS_PAID + " INTEGER DEFAULT 0, " +
+                COLUMN_PAYMENT_DATE + " TEXT, " +
                 COLUMN_WRITTEN_EXAM_PASSED + " INTEGER DEFAULT 0, " +
                 COLUMN_PRACTICAL_EXAM_PASSED + " INTEGER DEFAULT 0, " +
-                COLUMN_PAYMENT_DATE + " TEXT, " +
                 COLUMN_EXAM_DATE + " TEXT, " +
                 "FOREIGN KEY(" + COLUMN_USER_ID + ") REFERENCES " + TABLE_AUTH + "(" + COLUMN_ID + ")" +
                 ");";
-
-        db.execSQL(createAuthTable);
-        db.execSQL(createVehicleTable);
         db.execSQL(createStatusTable);
+
+        // Crear tabla de horarios (agregado)
+        String createSchedulesTable = "CREATE TABLE " + TABLE_SCHEDULES + " (" +
+                COLUMN_SCHEDULE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_SCHEDULE_DATE + " TEXT, " +
+                COLUMN_SCHEDULE_TIME + " TEXT" +
+                ");";
+        db.execSQL(createSchedulesTable);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_AUTH);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_VEHICLE);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_SCHEDULES); // eliminado schedules
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_STATUS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_VEHICLE);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_AUTH);
         onCreate(db);
     }
 
@@ -100,16 +114,14 @@ public class AppDatabase extends SQLiteOpenHelper {
     public void addAuth(int id, String firstName, String lastName, String birthDate, String email, String password) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-
         cv.put(COLUMN_ID, id);
         cv.put(COLUMN_NAMES, firstName);
         cv.put(COLUMN_LASTNAMES, lastName);
         cv.put(COLUMN_BIRTHDATE, birthDate);
         cv.put(COLUMN_EMAIL, email);
         cv.put(COLUMN_PASSWORD, password);
-
         long result = db.insert(TABLE_AUTH, null, cv);
-        if(result == -1) {
+        if (result == -1) {
             Toast.makeText(context, "Registro fallido", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show();
@@ -125,18 +137,16 @@ public class AppDatabase extends SQLiteOpenHelper {
         );
     }
 
-    // Métodos para la tabla de vehículo
+    // Métodos para la tabla de vehículo (existente)
     public boolean addVehicle(int userId, String color, String plate, String brand, String model, int year) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-
         cv.put(COLUMN_USER_ID, userId);
         cv.put(COLUMN_COLOR, color);
         cv.put(COLUMN_PLATE, plate);
         cv.put(COLUMN_BRAND, brand);
         cv.put(COLUMN_MODEL, model);
         cv.put(COLUMN_YEAR, year);
-
         try {
             long result = db.insert(TABLE_VEHICLE, null, cv);
             return result != -1;
@@ -147,16 +157,15 @@ public class AppDatabase extends SQLiteOpenHelper {
             db.close();
         }
     }
+
     public boolean updateVehicle(int userId, String color, String plate, String brand, String model, int year) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-
         cv.put(COLUMN_COLOR, color);
         cv.put(COLUMN_PLATE, plate);
         cv.put(COLUMN_BRAND, brand);
         cv.put(COLUMN_MODEL, model);
         cv.put(COLUMN_YEAR, year);
-
         try {
             int rowsAffected = db.update(
                     TABLE_VEHICLE,
@@ -164,7 +173,6 @@ public class AppDatabase extends SQLiteOpenHelper {
                     COLUMN_USER_ID + " = ?",
                     new String[]{String.valueOf(userId)}
             );
-
             return rowsAffected > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -173,6 +181,7 @@ public class AppDatabase extends SQLiteOpenHelper {
             db.close();
         }
     }
+
     public Cursor getVehicleByUserId(int userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(
@@ -184,14 +193,11 @@ public class AppDatabase extends SQLiteOpenHelper {
         );
     }
 
-    // Métodos para la tabla de estado
+    // Métodos para estado de trámite (existente)
     public boolean initializeUserStatus(int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-
         cv.put(COLUMN_USER_ID, userId);
-        // Los demás campos quedan con sus valores por defecto
-
         long result = db.insert(TABLE_STATUS, null, cv);
         return result != -1;
     }
@@ -199,10 +205,8 @@ public class AppDatabase extends SQLiteOpenHelper {
     public boolean updatePaymentStatus(int userId, boolean hasPaid, String paymentDate) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-
         cv.put(COLUMN_HAS_PAID, hasPaid ? 1 : 0);
         cv.put(COLUMN_PAYMENT_DATE, paymentDate);
-
         int rowsAffected = db.update(
                 TABLE_STATUS,
                 cv,
@@ -215,11 +219,9 @@ public class AppDatabase extends SQLiteOpenHelper {
     public boolean updateExamStatus(int userId, boolean writtenPassed, boolean practicalPassed, String examDate) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-
         cv.put(COLUMN_WRITTEN_EXAM_PASSED, writtenPassed ? 1 : 0);
         cv.put(COLUMN_PRACTICAL_EXAM_PASSED, practicalPassed ? 1 : 0);
         cv.put(COLUMN_EXAM_DATE, examDate);
-
         int rowsAffected = db.update(
                 TABLE_STATUS,
                 cv,
@@ -238,5 +240,40 @@ public class AppDatabase extends SQLiteOpenHelper {
                 new String[]{String.valueOf(userId)},
                 null, null, null
         );
+    }
+
+    // MÉTODOS AGREGADOS PARA LISTADOS
+    /** Obtiene todos los usuarios con estado de pago */
+    public Cursor getAllUsersWithPaymentStatus() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT u." + COLUMN_ID + ", u." + COLUMN_NAMES + ", u." + COLUMN_LASTNAMES + ", u." + COLUMN_BIRTHDATE + ", u." + COLUMN_EMAIL + ", " +
+                "CASE WHEN p." + COLUMN_HAS_PAID + " = 1 THEN 'Sí' ELSE 'No' END AS pago " +
+                "FROM " + TABLE_AUTH + " u " +
+                "LEFT JOIN " + TABLE_STATUS + " p ON u." + COLUMN_ID + " = p." + COLUMN_USER_ID;
+        return db.rawQuery(query, null);
+    }
+
+    /** Obtiene todos los pagos registrados */
+    public Cursor getAllPayments() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT p." + COLUMN_STATUS_ID + " AS id, u." + COLUMN_NAMES + " || ' ' || u." + COLUMN_LASTNAMES + " AS usuario, p." + COLUMN_PAYMENT_DATE + " AS fecha " +
+                "FROM " + TABLE_STATUS + " p " +
+                "LEFT JOIN " + TABLE_AUTH + " u ON p." + COLUMN_USER_ID + " = u." + COLUMN_ID;
+        return db.rawQuery(query, null);
+    }
+
+    /** Obtiene todos los horarios disponibles */
+    public Cursor getAllSchedules() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLE_SCHEDULES, null);
+    }
+
+    /** Inserta un nuevo horario */
+    public long addSchedule(String fecha, String hora) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_SCHEDULE_DATE, fecha);
+        cv.put(COLUMN_SCHEDULE_TIME, hora);
+        return db.insert(TABLE_SCHEDULES, null, cv);
     }
 }
