@@ -39,7 +39,14 @@
         <activity
             android:name=".user.vehicle.UserVehicleActivity"
             android:exported="true"/>
-
+        <activity android:name=".admin.dashboard.AdminHomeActivity"
+            android:exported="true"/>
+        <activity android:name=".admin.dashboard.PaymentsListActivity"
+            android:exported="true"/>
+        <activity android:name=".admin.dashboard.ScheduleManagementActivity"
+            android:exported="true"/>
+        <activity android:name=".admin.dashboard.AddScheduleActivity"
+            android:exported="true"/>
 
     </application>
 
