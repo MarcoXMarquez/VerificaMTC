@@ -13,7 +13,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.master.verificamtc.admin.dashboard.AdminDashboardActivity;
+import com.master.verificamtc.admin.dashboard.AdminHomeActivity;
 import com.master.verificamtc.R;
 
 public class AuthAdminActivity extends AppCompatActivity{
@@ -39,7 +39,7 @@ public class AuthAdminActivity extends AppCompatActivity{
             public void onClick(View view){
                 if(username.getText().toString().equals("user") && password.getText().toString().equals("1234")){
                     Toast.makeText(AuthAdminActivity.this, "Inicio de sesion exitoso!", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(AuthAdminActivity.this, AdminDashboardActivity.class);
+                    Intent intent = new Intent(AuthAdminActivity.this, AdminHomeActivity.class);
                     startActivity(intent);
                 }
                 else{
