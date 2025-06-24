@@ -5,13 +5,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.view.View;
 import android.app.DatePickerDialog;
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import android.widget.Toast;
 
-import com.master.verificamtc.database.AppDatabase;
+import androidx.appcompat.app.AppCompatActivity;
+import com.master.verificamtc.helpers.FirebaseDatabaseHelper;
 import com.master.verificamtc.utils.SecurityHelper;
 import com.master.verificamtc.R;
 
@@ -19,28 +16,26 @@ import java.util.Calendar;
 import java.util.Locale;
 
 public class AuthRegisterActivity extends AppCompatActivity {
-    EditText dni, names, lastNames, email, password, date;
-
-    Button registerButton;
+    private FirebaseDatabaseHelper dbHelper;
+    private EditText reDni, reNames, reLastNames, reEmail, rePassword, reDate;
+    Button reRegisterButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_register);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-        dni = findViewById(R.id.register_dni);
-        names = findViewById(R.id.register_names);
-        lastNames = findViewById(R.id.register_lastnames);
-        email = findViewById(R.id.register_email);
-        password = findViewById(R.id.register_password);
-        date= findViewById(R.id.register_birthdate);
-        registerButton = findViewById(R.id.register_button);
 
-        date.setOnClickListener(new View.OnClickListener() {
+        // Inicializar Firebase helper
+        dbHelper = new FirebaseDatabaseHelper(this);
+
+        reDni = findViewById(R.id.register_dni);
+        reNames = findViewById(R.id.register_names);
+        reLastNames = findViewById(R.id.register_lastnames);
+        reEmail = findViewById(R.id.register_email);
+        rePassword = findViewById(R.id.register_password);
+        reDate= findViewById(R.id.register_birthdate);
+        reRegisterButton = findViewById(R.id.register_button);
+
+        reDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final Calendar calendar = Calendar.getInstance();
@@ -53,7 +48,7 @@ public class AuthRegisterActivity extends AppCompatActivity {
                         AuthRegisterActivity.this,
                         (view, selectedYear, selectedMonth, selectedDay) -> {
                             String fechaSeleccionada = String.format(Locale.getDefault(), "%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear);
-                            date.setText(fechaSeleccionada);
+                            reDate.setText(fechaSeleccionada);
                         },
                         year, month, day
                 );
@@ -61,23 +56,34 @@ public class AuthRegisterActivity extends AppCompatActivity {
                 datePickerDialog.show();
             }
         });
+        reRegisterButton.setOnClickListener(v -> addUser());
+    }
+    private void addUser() {
+        String userId = reDni.getText().toString().trim();
+        String firstName = reNames.getText().toString().trim();
+        String lastName = reLastNames.getText().toString().trim();
+        String birthDate = reDate.getText().toString().trim();
+        String email = reEmail.getText().toString().trim();
+        String password = rePassword.getText().toString().trim();
 
-        registerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view){
-                String plainPassword = password.getText().toString().trim();
-                String hashedPassword = SecurityHelper.hashPassword(plainPassword);
+        if (userId.isEmpty() || firstName.isEmpty() || lastName.isEmpty() ||
+                birthDate.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // Validación mejorada
+        if (!SecurityHelper.isPasswordStrong(password)) {
+            rePassword.setError("La contraseña debe tener:\n- 8+ caracteres\n- 1 mayúscula\n- 1 minúscula\n- 1 número");
+            rePassword.requestFocus();
+            return;
+        }
 
-                AppDatabase myDB = new AppDatabase(AuthRegisterActivity.this);
-                myDB.addAuth(
-                        Integer.valueOf(dni.getText().toString().trim()),
-                        names.getText().toString().trim(),
-                        lastNames.getText().toString().trim(),
-                        date.getText().toString().trim(),
-                        email.getText().toString().trim(),
-                        hashedPassword
-                );
-            }
-        });
+        try {
+            String hashedPassword = SecurityHelper.hashPassword(password);
+            dbHelper.addUser(userId, firstName, lastName, birthDate, email, hashedPassword);
+        } catch (IllegalArgumentException e) {
+            Toast.makeText(this, "Error de seguridad: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+
     }
 }

@@ -2,6 +2,26 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <queries>
+
+        <!-- Camera -->
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.GET_CONTENT" />
+            <data android:mimeType="image/*" />
+        </intent>
+    </queries>
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -12,35 +32,53 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.VerificaMTC"
         tools:targetApi="31">
+
+        <!-- Main Launcher Activity -->
         <activity
-            android:name=".auth.AuthSelectorActivity"
+            android:name=".helpers.object.FaceRecognitionActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Authentication Activities -->
+        <activity
+            android:name=".auth.AuthUserActivity"
+            android:exported="true"/>
+
         <activity
             android:name=".auth.AuthRegisterActivity"
             android:exported="true" />
-        <activity
-            android:name=".auth.AuthUserActivity"
-            android:exported="true">
-        </activity>
+
         <activity
             android:name=".auth.AuthAdminActivity"
-            android:exported="true"/>
+            android:exported="true" />
+
+        <!-- Dashboard Activities -->
         <activity
             android:name=".admin.dashboard.AdminDashboardActivity"
-            android:exported="true"/>
+            android:exported="true" />
+
         <activity
             android:name=".user.dashboard.UserDashboardActivity"
-            android:exported="true"/>
+            android:exported="true" />
+
+        <!-- Other Activities -->
         <activity
             android:name=".user.vehicle.UserVehicleActivity"
-            android:exported="true"/>
-
-
+            android:exported="true" />
+        <!-- make sure within the application tag, otherwise app will crash with XmlResourceParser errors -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/fileprovider" />
+        </provider>
     </application>
 
 </manifest>

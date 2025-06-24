@@ -1,38 +1,51 @@
 package com.master.verificamtc.auth;
 
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.view.View;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.master.verificamtc.database.AppDatabase;
-import com.master.verificamtc.utils.SecurityHelper;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.master.verificamtc.R;
 import com.master.verificamtc.user.dashboard.UserDashboardActivity;
+import com.master.verificamtc.utils.SecurityHelper;
 
 public class AuthUserActivity extends AppCompatActivity {
-    EditText username; // Este será el DNI
-    EditText password;
-    Button loginButton;
-    TextView signup;
-    AppDatabase dbHelper;
+    private EditText username;
+    private EditText password;
+    private Button loginButton;
+    private TextView signup;
+
+    private FirebaseAuth mAuth;
+    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Initialize Firebase persistence FIRST
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_userlogin);
 
-        dbHelper = new AppDatabase(this);
+        // Initialize Firebase components
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.userlogin), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -40,75 +53,131 @@ public class AuthUserActivity extends AppCompatActivity {
             return insets;
         });
 
+        // Initialize UI components
         username = findViewById(R.id.username);
         password = findViewById(R.id.password);
         loginButton = findViewById(R.id.loginButton);
-        signup = findViewById(R.id.signup);
+        signup = findViewById(R.id.signup_user);
 
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String dni = username.getText().toString().trim();
-                String inputPassword = password.getText().toString().trim();
+        if (username == null || password == null || loginButton == null || signup == null) {
+            Toast.makeText(this, "Error initializing UI components", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
 
-                if (dni.isEmpty() || inputPassword.isEmpty()) {
-                    Toast.makeText(AuthUserActivity.this, "DNI y contraseña requeridos", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+        setupLoginButton();
+        setupSignupButton();
+    }
 
-                try {
-                    int userId = Integer.parseInt(dni);
-                    if (authenticateUser(userId, inputPassword)) {
-                        Toast.makeText(AuthUserActivity.this, "Inicio de sesión exitoso!", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(AuthUserActivity.this, UserDashboardActivity.class);
-                        intent.putExtra("USER_ID", userId); // Pasamos el ID del usuario
-                        startActivity(intent);
-                        finish(); // Cierra la actividad de login
-                    } else {
-                        Toast.makeText(AuthUserActivity.this, "DNI o contraseña incorrectos", Toast.LENGTH_SHORT).show();
-                    }
-                } catch (NumberFormatException e) {
-                    Toast.makeText(AuthUserActivity.this, "DNI debe ser numérico", Toast.LENGTH_SHORT).show();
-                }
+    private void setupLoginButton() {
+        loginButton.setOnClickListener(view -> {
+            String dni = username.getText().toString().trim();
+            String inputPassword = password.getText().toString().trim();
+
+            if (dni.isEmpty() || inputPassword.isEmpty()) {
+                Toast.makeText(AuthUserActivity.this, "DNI y contraseña requeridos", Toast.LENGTH_SHORT).show();
+                return;
             }
-        });
 
-        signup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(AuthUserActivity.this, AuthRegisterActivity.class));
+            if (!dni.matches("\\d{8}")) {
+                Toast.makeText(AuthUserActivity.this, "DNI debe tener 8 dígitos", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            authenticateUser(dni, inputPassword);
+        });
+    }
+
+    private void setupSignupButton() {
+        signup.setOnClickListener(view -> {
+            try {
+                Intent intent = new Intent(AuthUserActivity.this, AuthRegisterActivity.class);
+                startActivity(intent);
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            } catch (Exception e) {
+                Log.e("AuthUserActivity", "Signup Error", e);
+                Toast.makeText(AuthUserActivity.this,
+                        "Error al abrir registro: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    private boolean authenticateUser(int dni, String inputPassword) {
-        // 1. Obtener el usuario de la base de datos
-        Cursor cursor = dbHelper.getReadableDatabase().query(
-                AppDatabase.TABLE_AUTH,
-                new String[]{AppDatabase.COLUMN_ID, AppDatabase.COLUMN_PASSWORD},
-                AppDatabase.COLUMN_ID + " = ?",
-                new String[]{String.valueOf(dni)},
-                null, null, null
-        );
+    private void authenticateUser(String dni, String inputPassword) {
+        mDatabase.child("users")
+                .orderByChild("dni")
+                .equalTo(dni)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                                String storedPassword = userSnapshot.child("password").getValue(String.class);
+                                if (storedPassword == null) {
+                                    Toast.makeText(AuthUserActivity.this,
+                                            "Error en los datos del usuario",
+                                            Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
 
-        if (cursor != null && cursor.moveToFirst()) {
-            // 2. Obtener el hash almacenado
-            String storedHash = cursor.getString(cursor.getColumnIndexOrThrow(AppDatabase.COLUMN_PASSWORD));
-            cursor.close();
+                                if (SecurityHelper.checkPassword(inputPassword, storedPassword)) {
+                                    proceedToDashboard(userSnapshot.getKey());
+                                } else {
+                                    Toast.makeText(AuthUserActivity.this,
+                                            "Contraseña incorrecta",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        } else {
+                            Toast.makeText(AuthUserActivity.this,
+                                    "Usuario no encontrado",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
 
-            // 3. Verificar la contraseña
-            return SecurityHelper.checkPassword(inputPassword, storedHash);
-        }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Toast.makeText(AuthUserActivity.this,
+                                "Error de conexión: " + databaseError.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
 
-        if (cursor != null) {
-            cursor.close();
-        }
-        return false;
+    private void proceedToDashboard(String userId) {
+        Toast.makeText(this, "Inicio de sesión exitoso!", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, UserDashboardActivity.class);
+        intent.putExtra("USER_ID", userId);
+        startActivity(intent);
+        finish();
     }
 
     @Override
-    protected void onDestroy() {
-        dbHelper.close();
-        super.onDestroy();
+    protected void onStart() {
+        super.onStart();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            // User is already logged in, redirect to dashboard
+            mDatabase.child("users")
+                    .orderByChild("email")
+                    .equalTo(currentUser.getEmail())
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.exists()) {
+                                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                    proceedToDashboard(snapshot.getKey());
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Toast.makeText(AuthUserActivity.this,
+                                    "Error al verificar usuario",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
     }
 }

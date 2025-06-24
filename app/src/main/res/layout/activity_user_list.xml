@@ -1,28 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:translationY="20dp">
+    android:padding="16dp">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gestión de Usuarios"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvTitle"
+        android:queryHint="Buscar por DNI..."
+        android:layout_marginBottom="8dp"/>
+
+    <ListView
+        android:id="@+id/userListView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/searchView"
+        android:layout_above="@id/btnRefresh"
+        android:divider="@android:color/darker_gray"
+        android:dividerHeight="1dp"/>
+
+    <Button
+        android:id="@+id/btnRefresh"
         android:layout_width="wrap_content"
-        android:layout_height="641dp"
-        android:orientation="vertical"
-        android:translationY="14sp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Lista de Usuarios Registrados"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <ListView
-            android:id="@+id/userListView"
-            android:layout_width="370dp"
-            android:layout_height="598dp"
-            android:layout_marginTop="16dp" />
-    </LinearLayout>
-</LinearLayout>
+        android:layout_height="wrap_content"
+        android:text="Actualizar"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="16dp"/>
+</RelativeLayout>
