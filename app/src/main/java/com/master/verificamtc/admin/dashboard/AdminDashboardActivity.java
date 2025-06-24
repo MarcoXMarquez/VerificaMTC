@@ -8,7 +8,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.master.verificamtc.database.AppDatabase;
+import com.master.verificamtc.helpers.AppDatabase;
 import com.master.verificamtc.R;
 
 import java.util.ArrayList;

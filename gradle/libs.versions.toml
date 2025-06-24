@@ -1,4 +1,5 @@
 [versions]
+# Versiones comunes
 agp = "8.10.1"
 firebaseBom = "33.15.0"
 junit = "4.13.2"
@@ -11,12 +12,40 @@ activity = "1.10.1"
 constraintlayout = "2.1.4"
 jbcrypt = "0.4"
 firebaseDatabase = "21.0.0"
-firebase-ml-vision = "24.1.0"
-firebase-ml-face-model = "20.0.2"
-cameraX = "1.1.0"
-cameraView = "1.0.0-alpha32"
+ext-junit = "1.1.2"
+exifinterface = "1.3.4"
+
+# ML Kit
+mlkit-image-labeling = "17.0.7"
+mlkit-image-labeling-custom = "17.0.1"
+mlkit-object-detection = "17.0.0"
+mlkit-face-detection = "16.1.5"
+mlkit-pose-detection = "18.0.0-beta3"
+mlkit-pose-detection-accurate = "18.0.0-beta3"
+
+# TensorFlow
+tensorflow-lite = "2.4.0"
+tensorflow-lite-gpu = "2.4.0"
+tensorflow-lite-support = "0.2.0"
+tensorflow-lite-task-audio = "0.2.0"
+tensorflow-lite-task-text = "0.2.0"
+
+# CameraX
+camera-core = "1.1.0"
+camera-view = "1.1.0"
+camera-camera2 = "1.1.0"
+camera-lifecycle = "1.1.0"
+
+# Utilidades
+gson = "2.8.9"
+guava-android = "27.1-android"
+playServicesMlkitFaceDetection = "17.1.0"
+tensorflowLiteMetadata = "0.1.0"
 
 [libraries]
+# UI Android
+exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "exifinterface" }
+
 # Firebase
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-authentication = { module = "com.google.firebase:firebase-auth", version.ref = "firebase-auth" }
@@ -24,8 +53,19 @@ firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "fir
 firebase-database = { module = "com.google.firebase:firebase-database", version.ref = "firebaseDatabase" }
 
 # ML Kit
-firebase-ml-vision = { module = "com.google.firebase:firebase-ml-vision", version.ref = "firebase-ml-vision" }
-firebase-ml-face-model = { module = "com.google.firebase:firebase-ml-vision-face-model", version.ref = "firebase-ml-face-model" }
+mlkit-image-labeling = { module = "com.google.mlkit:image-labeling", version.ref = "mlkit-image-labeling" }
+mlkit-image-labeling-custom = { module = "com.google.mlkit:image-labeling-custom", version.ref = "mlkit-image-labeling-custom" }
+mlkit-objec-detection = { module = "com.google.mlkit:object-detection", version.ref = "mlkit-object-detection" }
+mlkit-face-detection = { module = "com.google.mlkit:face-detection", version.ref = "mlkit-face-detection" }
+mlkit-pose-detection = { module = "com.google.mlkit:pose-detection", version.ref = "mlkit-pose-detection" }
+mlkit-pose-detection-accurate = { module = "com.google.mlkit:pose-detection-accurate", version.ref = "mlkit-pose-detection-accurate" }
+
+# TensorFlow
+tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflow-lite" }
+tensorflow-lite-gpu = { module = "org.tensorflow:tensorflow-lite-gpu", version.ref = "tensorflow-lite-gpu" }
+tensorflow-lite-support = { module = "org.tensorflow:tensorflow-lite-support", version.ref = "tensorflow-lite-support" }
+tensorflow-lite-task-audio = { module = "org.tensorflow:tensorflow-lite-task-audio", version.ref = "tensorflow-lite-task-audio" }
+tensorflow-lite-task-text = { module = "org.tensorflow:tensorflow-lite-task-text", version.ref = "tensorflow-lite-task-text" }
 
 # AndroidX
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
@@ -34,9 +74,14 @@ activity = { module = "androidx.activity:activity", version.ref = "activity" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 
 # CameraX
-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraX" }
-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraX" }
-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraView" }
+camera-core = { module = "androidx.camera:camera-core", version.ref = "camera-core" }
+camera-view = { module = "androidx.camera:camera-view", version.ref = "camera-view" }
+camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera-camera2" }
+camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera-lifecycle" }
+
+# Utilidades
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+guava-android = { module = "com.google.guava:guava", version.ref = "guava-android" }
 
 # Testing
 junit = { module = "junit:junit", version.ref = "junit" }
@@ -45,6 +90,8 @@ espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref =
 
 # Other
 jbcrypt = { module = "org.mindrot:jbcrypt", version.ref = "jbcrypt" }
+play-services-mlkit-face-detection = { group = "com.google.android.gms", name = "play-services-mlkit-face-detection", version.ref = "playServicesMlkitFaceDetection" }
+tensorflow-lite-metadata = { group = "org.tensorflow", name = "tensorflow-lite-metadata", version.ref = "tensorflowLiteMetadata" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

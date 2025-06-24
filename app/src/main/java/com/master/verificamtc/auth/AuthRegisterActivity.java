@@ -8,7 +8,7 @@ import android.app.DatePickerDialog;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import com.master.verificamtc.database.FirebaseDatabaseHelper;
+import com.master.verificamtc.helpers.FirebaseDatabaseHelper;
 import com.master.verificamtc.utils.SecurityHelper;
 import com.master.verificamtc.R;
 

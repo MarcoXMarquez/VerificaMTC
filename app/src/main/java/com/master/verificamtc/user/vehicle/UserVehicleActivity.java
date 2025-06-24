@@ -1,15 +1,12 @@
 package com.master.verificamtc.user.vehicle;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
-import com.master.verificamtc.auth.AuthRegisterActivity;
-import com.master.verificamtc.database.AppDatabase;
+import com.master.verificamtc.helpers.AppDatabase;
 import com.master.verificamtc.R;
-import com.master.verificamtc.utils.SecurityHelper;
 
 public class UserVehicleActivity extends AppCompatActivity {
     private TextInputEditText etPlate, etColor, etBrand, etModel, etYear;

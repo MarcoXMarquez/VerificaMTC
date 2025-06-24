@@ -14,7 +14,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.master.verificamtc.R;
-import com.master.verificamtc.database.FirebaseDatabaseHelper;
+import com.master.verificamtc.helpers.FirebaseDatabaseHelper;
 import com.master.verificamtc.user.circuit.UserCircuitActivity;
 import com.master.verificamtc.user.exam.UserExamActivity;
 import com.master.verificamtc.user.payment.UserPaymentActivity;

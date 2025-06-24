@@ -33,6 +33,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    buildFeatures {
+        mlModelBinding = true
+    }
 }
 
 dependencies {
@@ -43,21 +46,42 @@ dependencies {
     implementation(libs.appcompat) // Compatibilidad
     implementation(libs.material) // Diseño Material
     implementation(libs.constraintlayout) // Layouts
+    implementation(libs.exifinterface)
+
+    // ML Kit
+    implementation(libs.mlkit.image.labeling)
+    implementation(libs.mlkit.image.labeling.custom)
+    implementation(libs.mlkit.objec.detection)
+    implementation(libs.mlkit.face.detection)
+    implementation(libs.mlkit.pose.detection)
+    implementation(libs.mlkit.pose.detection.accurate)
+
+    // TensorFlow Lite
+    implementation(libs.tensorflow.lite)
+    implementation(libs.tensorflow.lite.gpu)
+    implementation(libs.tensorflow.lite.support)
+    implementation(libs.tensorflow.lite.task.audio)
+    implementation(libs.tensorflow.lite.task.text)
+
+    // CameraX
+    implementation(libs.camera.core)
+    implementation(libs.camera.view)
+    implementation(libs.camera.camera2)
+    implementation(libs.camera.lifecycle)
+
+    // Utilidades
+    implementation(libs.gson)
+    implementation(libs.guava.android)
 
     // Firebase
     implementation(libs.firebase.analytics) // Métricas
     implementation(libs.firebase.authentication) // Login
     implementation(platform(libs.firebase.bom)) // Gestión de versiones
-    implementation(libs.firebase.database) // Base de datos
+    implementation(libs.firebase.database)
+    implementation(libs.play.services.mlkit.face.detection)
+    implementation(libs.tensorflow.lite.metadata) // Base de datos
 
-    // Reconocimiento Facial
-    implementation(libs.firebase.ml.vision) // Procesamiento de imágenes
-    implementation(libs.firebase.ml.face.model) // Modelo facial
 
-    // Cámara
-    implementation(libs.camera.camera2) // Núcleo cámara
-    implementation(libs.camera.lifecycle) // Ciclo de vida
-    implementation(libs.camera.view) // Vista previa
 
     // Testing
     testImplementation(libs.junit) // Pruebas unitarias
