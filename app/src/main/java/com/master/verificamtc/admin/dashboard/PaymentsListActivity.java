@@ -28,16 +28,23 @@ public class PaymentsListActivity extends AppCompatActivity {
     private void displayPaymentsList() {
         Cursor cursor = databaseHelper.getAllPayments();
         ArrayList<String> paymentsList = new ArrayList<>();
+        String estado;
 
         if (cursor.getCount() == 0) {
             Toast.makeText(this, "No hay pagos registrados", Toast.LENGTH_SHORT).show();
         } else {
             while (cursor.moveToNext()) {
-                // Ajusta índices según tu esquema de payments table
-                String paymentData = "ID Pago: " + cursor.getString(0)
-                        + "\nUsuario: " + cursor.getString(1)
-                        + "\nMonto: " + cursor.getString(2)
-                        + "\nFecha: " + cursor.getString(3);
+                if (cursor.getInt(2)==0){
+                    estado = "Pendiente";
+                }
+                else{
+                    estado = "Pagado";
+                }
+                String paymentData =
+                        "ID Pago: "   + cursor.getString(0)
+                                + "\nUsuario: "  + cursor.getString(1)
+                                + "\nEstado de pago: "    + estado   // monto es integer (0 o 1) o bien real
+                                + "\nFecha: "    + cursor.getString(3);
                 paymentsList.add(paymentData);
             }
         }
@@ -50,4 +57,5 @@ public class PaymentsListActivity extends AppCompatActivity {
         );
         paymentsListView.setAdapter(adapter);
     }
+
 }
