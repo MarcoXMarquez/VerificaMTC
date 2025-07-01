@@ -24,7 +24,6 @@ mlkit-pose-detection = "18.0.0-beta3"
 mlkit-pose-detection-accurate = "18.0.0-beta3"
 
 # TensorFlow
-tensorflow-lite = "2.4.0"
 tensorflow-lite-gpu = "2.4.0"
 tensorflow-lite-support = "0.2.0"
 tensorflow-lite-task-audio = "0.2.0"
@@ -57,11 +56,9 @@ mlkit-image-labeling = { module = "com.google.mlkit:image-labeling", version.ref
 mlkit-image-labeling-custom = { module = "com.google.mlkit:image-labeling-custom", version.ref = "mlkit-image-labeling-custom" }
 mlkit-objec-detection = { module = "com.google.mlkit:object-detection", version.ref = "mlkit-object-detection" }
 mlkit-face-detection = { module = "com.google.mlkit:face-detection", version.ref = "mlkit-face-detection" }
-mlkit-pose-detection = { module = "com.google.mlkit:pose-detection", version.ref = "mlkit-pose-detection" }
-mlkit-pose-detection-accurate = { module = "com.google.mlkit:pose-detection-accurate", version.ref = "mlkit-pose-detection-accurate" }
 
 # TensorFlow
-tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflow-lite" }
+tensorflow-lite = { group = "org.tensorflow", name = "tensorflow-lite", version = "+" }
 tensorflow-lite-gpu = { module = "org.tensorflow:tensorflow-lite-gpu", version.ref = "tensorflow-lite-gpu" }
 tensorflow-lite-support = { module = "org.tensorflow:tensorflow-lite-support", version.ref = "tensorflow-lite-support" }
 tensorflow-lite-task-audio = { module = "org.tensorflow:tensorflow-lite-task-audio", version.ref = "tensorflow-lite-task-audio" }

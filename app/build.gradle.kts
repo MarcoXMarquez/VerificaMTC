@@ -33,8 +33,8 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    buildFeatures {
-        mlModelBinding = true
+    aaptOptions {
+        noCompress += listOf("tflite", "lite") // Asegúrate de incluir las extensiones necesarias
     }
 }
 
@@ -53,8 +53,6 @@ dependencies {
     implementation(libs.mlkit.image.labeling.custom)
     implementation(libs.mlkit.objec.detection)
     implementation(libs.mlkit.face.detection)
-    implementation(libs.mlkit.pose.detection)
-    implementation(libs.mlkit.pose.detection.accurate)
 
     // TensorFlow Lite
     implementation(libs.tensorflow.lite)

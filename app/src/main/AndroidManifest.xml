@@ -58,6 +58,13 @@
         <activity
             android:name=".user.vehicle.UserVehicleActivity"
             android:exported="true" />
+        <activity
+            android:name=".admin.dashboard.RegisterActivity"
+            android:exported="true" />
+        <activity
+            android:name=".admin.dashboard.RecognitionActivity"
+            android:exported="true" />
+
         <!-- make sure within the application tag, otherwise app will crash with XmlResourceParser errors -->
         <provider
             android:name="androidx.core.content.FileProvider"
