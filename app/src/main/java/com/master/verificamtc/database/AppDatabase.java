@@ -12,7 +12,7 @@ import androidx.annotation.Nullable;
 public class AppDatabase extends SQLiteOpenHelper {
     private Context context;
     private static final String DATABASE_NAME = "Verificamtc.db";
-    private static final int DATABASE_VERSION = 2; // Incrementamos la versión por los cambios
+    private static final int DATABASE_VERSION = 3; // Incrementamos la versión por los cambios
 
     // Tabla de autenticación (existente)
     public static final String TABLE_AUTH = "auth_registry";
@@ -83,7 +83,7 @@ public class AppDatabase extends SQLiteOpenHelper {
         String createStatusTable = "CREATE TABLE " + TABLE_STATUS + " (" +
                 COLUMN_STATUS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_USER_ID + " INTEGER NOT NULL UNIQUE, " +
-                COLUMN_HAS_PAID + " INTEGER DEFAULT 0, " +
+                COLUMN_HAS_PAID + " INTEGER DEFAULT 100, " +
                 COLUMN_PAYMENT_DATE + " TEXT, " +
                 COLUMN_WRITTEN_EXAM_PASSED + " INTEGER DEFAULT 0, " +
                 COLUMN_PRACTICAL_EXAM_PASSED + " INTEGER DEFAULT 0, " +
@@ -125,6 +125,7 @@ public class AppDatabase extends SQLiteOpenHelper {
             Toast.makeText(context, "Registro fallido", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show();
+            initializeUserStatus(id);
         }
     }
 
@@ -205,16 +206,29 @@ public class AppDatabase extends SQLiteOpenHelper {
     public boolean updatePaymentStatus(int userId, boolean hasPaid, String paymentDate) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
+
         cv.put(COLUMN_HAS_PAID, hasPaid ? 1 : 0);
         cv.put(COLUMN_PAYMENT_DATE, paymentDate);
+
         int rowsAffected = db.update(
                 TABLE_STATUS,
                 cv,
                 COLUMN_USER_ID + " = ?",
                 new String[]{String.valueOf(userId)}
         );
+        if (rowsAffected == 0) {
+            initializeUserStatus(userId);
+            rowsAffected = db.update(
+                    TABLE_STATUS,
+                    cv,
+                    COLUMN_USER_ID + " = ?",
+                    new String[]{ String.valueOf(userId) }
+            );
+        }
+
         return rowsAffected > 0;
     }
+
 
     public boolean updateExamStatus(int userId, boolean writtenPassed, boolean practicalPassed, String examDate) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -256,9 +270,13 @@ public class AppDatabase extends SQLiteOpenHelper {
     /** Obtiene todos los pagos registrados */
     public Cursor getAllPayments() {
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT p." + COLUMN_STATUS_ID + " AS id, u." + COLUMN_NAMES + " || ' ' || u." + COLUMN_LASTNAMES + " AS usuario, p." + COLUMN_PAYMENT_DATE + " AS fecha " +
-                "FROM " + TABLE_STATUS + " p " +
-                "LEFT JOIN " + TABLE_AUTH + " u ON p." + COLUMN_USER_ID + " = u." + COLUMN_ID;
+        String query =
+                "SELECT p." + COLUMN_STATUS_ID + " AS id, " +
+                        "u." + COLUMN_NAMES + " || ' ' || u." + COLUMN_LASTNAMES + " AS usuario, " +
+                        "p." + COLUMN_HAS_PAID + " AS monto, " +        // <-- nuevo
+                        "p." + COLUMN_PAYMENT_DATE + " AS fecha " +
+                        "FROM " + TABLE_STATUS + " p " +
+                        "LEFT JOIN " + TABLE_AUTH + " u ON p." + COLUMN_USER_ID + " = u." + COLUMN_ID;
         return db.rawQuery(query, null);
     }
 
