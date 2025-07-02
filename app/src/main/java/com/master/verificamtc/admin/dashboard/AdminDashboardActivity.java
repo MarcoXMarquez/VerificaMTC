@@ -63,8 +63,9 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 btnToggle.setText(paid ? "Desmarcar Pago" : "Marcar Pago");
                 btnToggle.setOnClickListener(v -> {
                     int userId = (Integer) item.get("id");
-                    boolean newStatus = !paid;
-                    boolean ok = db.updatePaymentStatus(userId, newStatus, "");
+                    boolean currentPaid = (Boolean) item.get("paid");
+                    boolean newStatus = !currentPaid;
+                    boolean ok = db.updatePaymentStatus((Integer) item.get("id"), newStatus, "");
                     if (ok) {
                         item.put("paid", newStatus);
                         btnToggle.setText(newStatus ? "Desmarcar Pago" : "Marcar Pago");
