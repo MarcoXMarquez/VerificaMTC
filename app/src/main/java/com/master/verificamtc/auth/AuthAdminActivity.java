@@ -1,51 +1,83 @@
 package com.master.verificamtc.auth;
 
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
 import android.content.Intent;
-
-import androidx.activity.EdgeToEdge;
+import android.os.Bundle;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-import com.master.verificamtc.admin.dashboard.AdminDashboardActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.master.verificamtc.R;
+import com.master.verificamtc.admin.dashboard.AdminDashboardActivity;
+import android.widget.EditText;
+import android.os.Handler;
 
-public class AuthAdminActivity extends AppCompatActivity{
-    EditText username, password;
-    Button loginButton;
+public class AuthAdminActivity extends AppCompatActivity {
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private int loginAttempts = 0;
+    private static final int MAX_ATTEMPTS = 3;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_adminlogin);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.adminlogin), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
-        username = findViewById(R.id.username);
-        password = findViewById(R.id.password);
-        loginButton = findViewById(R.id.loginButton);
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view){
-                if(username.getText().toString().equals("user") && password.getText().toString().equals("1234")){
-                    Toast.makeText(AuthAdminActivity.this, "Inicio de sesion exitoso!", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(AuthAdminActivity.this, AdminDashboardActivity.class);
-                    startActivity(intent);
-                }
-                else{
-                    Toast.makeText(AuthAdminActivity.this, "Inicio de sesion fallido", Toast.LENGTH_SHORT).show();                }
+        findViewById(R.id.loginButton).setOnClickListener(v -> {
+            String email = ((EditText) findViewById(R.id.username)).getText().toString();
+            String password = ((EditText) findViewById(R.id.password)).getText().toString();
+
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Ingrese email y contraseña", Toast.LENGTH_SHORT).show();
+                return;
             }
-        });
 
+            authenticateAdmin(email, password);
+        });
+    }
+
+    private void authenticateAdmin(String email, String password) {
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        verifyAdminRole(user.getUid());
+                    } else {
+                        loginAttempts++;
+                        if (loginAttempts >= MAX_ATTEMPTS) {
+                            blockAccessTemporarily();
+                        } else {
+                            Toast.makeText(this, "Credenciales incorrectas. Intentos: " +
+                                    (MAX_ATTEMPTS - loginAttempts), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
+
+    private void verifyAdminRole(String uid) {
+        db.collection("admins").document(uid)
+                .get()
+                .addOnSuccessListener(document -> {
+                    if (document.exists() && document.getBoolean("isAdmin")) {
+                        startActivity(new Intent(this, AdminDashboardActivity.class));
+                        finish();
+                    } else {
+                        mAuth.signOut();
+                        Toast.makeText(this, "No tiene privilegios de administrador", Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void blockAccessTemporarily() {
+        // Implementar bloqueo por 5 minutos
+        Toast.makeText(this, "Demasiados intentos. Espere 5 minutos", Toast.LENGTH_LONG).show();
+        findViewById(R.id.loginButton).setEnabled(false);
+        new Handler().postDelayed(() -> {
+            findViewById(R.id.loginButton).setEnabled(true);
+            loginAttempts = 0;
+        }, 300000); // 5 minutos
     }
 }
