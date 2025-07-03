@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 public class FaceDetectionActivity extends AppCompatActivity {
-    public static HashMap<String, FaceClassifier.Recognition> registered = new HashMap<>();
+    //public static HashMap<String, FaceClassifier.Recognition> registered = new HashMap<>();
 
     Button registerBtn,recognizeBtn;
     @Override

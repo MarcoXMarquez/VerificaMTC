@@ -148,7 +148,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         //TODO initialize face recognition model
         try {
-            faceClassifier = TFLiteFaceRecognition.create(getAssets(),"facenet.tflite",160,false);
+            faceClassifier = TFLiteFaceRecognition.create(getAssets(),"facenet.tflite",160,false, getApplicationContext());
         } catch (IOException e) {
             e.printStackTrace();
         }

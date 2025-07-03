@@ -1,5 +1,6 @@
 package com.master.verificamtc.helpers.facerecognition;
 
+import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -44,12 +45,19 @@ public class TFLiteFaceRecognition
 
     private Interpreter tfLite;
 
+    DBHelper dbHelper;
+    HashMap<String, FaceClassifier.Recognition> registered = new HashMap<>();
 
     public void register(String name, Recognition rec) {
-        FaceDetectionActivity.registered.put(name, rec);
+        dbHelper.insertFace(name, rec.getEmbeeding());
+        //FaceDetectionActivity.registered.put(name, rec);
     }
 
-    private TFLiteFaceRecognition() {}
+
+    private TFLiteFaceRecognition(Context context) {
+        dbHelper = new DBHelper(context);
+        registered = dbHelper.getAllFaces();
+    }
 
     //TODO loads the models into mapped byte buffer format
     private static MappedByteBuffer loadModelFile(AssetManager assets, String modelFilename)
@@ -68,10 +76,11 @@ public class TFLiteFaceRecognition
             final AssetManager assetManager,
             final String modelFilename,
             final int inputSize,
-            final boolean isQuantized)
+            final boolean isQuantized,
+            Context context)
             throws IOException {
 
-        final TFLiteFaceRecognition d = new TFLiteFaceRecognition();
+        final TFLiteFaceRecognition d = new TFLiteFaceRecognition(context);
         d.inputSize = inputSize;
 
         try {
@@ -98,7 +107,7 @@ public class TFLiteFaceRecognition
     // and retrurns the pair <id, distance>
     private Pair<String, Float> findNearest(float[] emb) {
         Pair<String, Float> ret = null;
-        for (Map.Entry<String, Recognition> entry : FaceDetectionActivity.registered.entrySet()) {
+        for (Map.Entry<String, Recognition> entry : registered.entrySet()) {
             final String name = entry.getKey();
             final float[] knownEmb = ((float[][]) entry.getValue().getEmbeeding())[0];
 
@@ -151,7 +160,7 @@ public class TFLiteFaceRecognition
         String id = "0";
         String label = "?";
 
-        if (FaceDetectionActivity.registered.size() > 0) {
+        if (registered.size() > 0) {
             final Pair<String, Float> nearest = findNearest(embeedings[0]);
             if (nearest != null) {
                 final String name = nearest.first;

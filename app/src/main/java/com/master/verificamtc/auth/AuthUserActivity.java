@@ -29,16 +29,15 @@ public class AuthUserActivity extends AppCompatActivity {
     private EditText username;
     private EditText password;
     private Button loginButton;
-    private TextView signup;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
+    static {
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Initialize Firebase persistence FIRST
-        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_userlogin);
@@ -57,7 +56,7 @@ public class AuthUserActivity extends AppCompatActivity {
         username = findViewById(R.id.username);
         password = findViewById(R.id.password);
         loginButton = findViewById(R.id.loginButton);
-        signup = findViewById(R.id.signup_user);
+        TextView signup = findViewById(R.id.signup_user);
 
         if (username == null || password == null || loginButton == null || signup == null) {
             Toast.makeText(this, "Error initializing UI components", Toast.LENGTH_LONG).show();
@@ -66,8 +65,17 @@ public class AuthUserActivity extends AppCompatActivity {
         }
 
         setupLoginButton();
-        setupSignupButton();
-    }
+        signup.setOnClickListener(view -> {
+            try {
+                Intent intent = new Intent(AuthUserActivity.this, AuthRegisterActivity.class);
+                startActivity(intent);
+            } catch (Exception e) {
+                Log.e("AuthUserActivity", "Signup Error", e);
+                Toast.makeText(AuthUserActivity.this,
+                        "Error al abrir registro: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });    }
 
     private void setupLoginButton() {
         loginButton.setOnClickListener(view -> {
@@ -85,21 +93,6 @@ public class AuthUserActivity extends AppCompatActivity {
             }
 
             authenticateUser(dni, inputPassword);
-        });
-    }
-
-    private void setupSignupButton() {
-        signup.setOnClickListener(view -> {
-            try {
-                Intent intent = new Intent(AuthUserActivity.this, AuthRegisterActivity.class);
-                startActivity(intent);
-                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-            } catch (Exception e) {
-                Log.e("AuthUserActivity", "Signup Error", e);
-                Toast.makeText(AuthUserActivity.this,
-                        "Error al abrir registro: " + e.getMessage(),
-                        Toast.LENGTH_LONG).show();
-            }
         });
     }
 

@@ -1,19 +1,50 @@
 package com.master.verificamtc.helpers;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.widget.Toast;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-public class FirebaseDatabaseHelper {
+public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
     private DatabaseReference database;
     private Context context;
+    private static final String DATABASE_NAME = "faces_db";
+    private static final int DATABASE_VERSION = 1;
+    public static final String TABLE_FACES = "faces";
+    public static final String COLUMN_USER_ID = "user_id";
+    public static final String COLUMN_EMBEDDING = "embedding";
     public FirebaseDatabaseHelper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.context = context;
-        FirebaseDatabase.getInstance().setPersistenceEnabled(true); // Habilita modo offline
         database = FirebaseDatabase.getInstance().getReference();
     }
+    public SQLiteDatabase getLocalDatabase() {
+        return this.getReadableDatabase();
+    }
+    public interface SyncCompletionListener {
+        void onSyncComplete(boolean success);
+    }
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        String CREATE_FACES_TABLE = "CREATE TABLE " + TABLE_FACES + "("
+                + COLUMN_USER_ID + " TEXT PRIMARY KEY,"
+                + COLUMN_EMBEDDING + " TEXT)";
+        db.execSQL(CREATE_FACES_TABLE);
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_FACES);
+        onCreate(db);
+    }
+
     public static class User {
         public String dni; // Cambiamos userId por dni
         public String firstName, lastName, birthDate, email, password;
@@ -102,6 +133,57 @@ public class FirebaseDatabaseHelper {
                 .addOnFailureListener(e -> {
                     Toast.makeText(context, "Error en registro: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
+    }
+    public void addEmbedding(String userId, String embedding ){
+        database.child("embeddings").child(userId).setValue(embedding);
+    }
+    public void getAllFaces( SyncCompletionListener listener) {
+        DatabaseReference embeddingsRef = database.child("embeddings");
+
+        embeddingsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SQLiteDatabase db = getWritableDatabase();
+                boolean success = false;
+
+                try {
+                    db.beginTransaction();
+                    db.delete(TABLE_FACES, null, null); // Limpiar tabla existente
+
+                    for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                        String userId = userSnapshot.getKey();
+                        String embedding = userSnapshot.getValue(String.class);
+
+                        ContentValues values = new ContentValues();
+                        values.put(COLUMN_USER_ID, userId);
+                        values.put(COLUMN_EMBEDDING, embedding);
+
+                        db.insert(TABLE_FACES, null, values);
+                    }
+
+                    db.setTransactionSuccessful();
+                    success = true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    success = false;
+                } finally {
+                    db.endTransaction();
+                    db.close();
+
+                    // Notificar que la sincronización ha terminado
+                    if (listener != null) {
+                        listener.onSyncComplete(success);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                if (listener != null) {
+                    listener.onSyncComplete(false);
+                }
+            }
+        });
     }
     public void getAllUsers(ValueEventListener listener) {
         database.child("users").addValueEventListener(listener);

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".helpers.DatabaseViewerActivity">
+
+    <Button
+        android:id="@+id/btnSyncData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sincronizar con Firebase"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btnLoadData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mostrar datos locales"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/tvDataCount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="0 registros encontrados"
+        android:textStyle="bold"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:id="@+id/tvDatabaseContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Presiona 'Sincronizar con Firebase' para comenzar"
+            android:textSize="14sp"/>
+    </ScrollView>
+
+</LinearLayout>
