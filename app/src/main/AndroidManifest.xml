@@ -42,6 +42,9 @@
         <activity
             android:name=".user.exam.UserExamActivity"
             android:exported="true"/>
+        <activity
+            android:name=".user.circuit.UserCircuitActivity"
+            android:exported="true"/>
 
 
     </application>
