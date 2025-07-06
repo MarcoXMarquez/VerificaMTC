@@ -1,22 +1,31 @@
 package com.master.verificamtc.admin.dashboard;
 
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.master.verificamtc.R;
-import com.master.verificamtc.database.AppDatabase;
+import com.master.verificamtc.models.Schedule;
+
 import java.util.ArrayList;
 
 public class ScheduleManagementActivity extends AppCompatActivity {
     private ListView scheduleListView;
     private Button btnAddSchedule;
-    private AppDatabase databaseHelper;
+    private ArrayList<String> scheduleDisplay;
+    private ArrayAdapter<String> adapter;
+    private DatabaseReference schedRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,43 +33,39 @@ public class ScheduleManagementActivity extends AppCompatActivity {
         setContentView(R.layout.activity_schedule_management);
 
         scheduleListView = findViewById(R.id.scheduleListView);
-        btnAddSchedule = findViewById(R.id.btnAddSchedule);
-        databaseHelper = new AppDatabase(this);
+        btnAddSchedule   = findViewById(R.id.btnAddSchedule);
 
-        displayScheduleList();
+        scheduleDisplay = new ArrayList<>();
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, scheduleDisplay);
+        scheduleListView.setAdapter(adapter);
 
-        btnAddSchedule.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Lanzar actividad o diálogo para agregar nuevo horario (placeholder)
-                Intent intent = new Intent(ScheduleManagementActivity.this, AddScheduleActivity.class);
-                startActivity(intent);
-            }
+        schedRef = FirebaseDatabase.getInstance().getReference("schedules");
+
+        btnAddSchedule.setOnClickListener(v -> {
+            startActivity(new Intent(this, AddScheduleActivity.class));
         });
+
+        loadSchedules();
     }
 
-    private void displayScheduleList() {
-        Cursor cursor = databaseHelper.getAllSchedules();
-        ArrayList<String> scheduleList = new ArrayList<>();
-
-        if (cursor.getCount() == 0) {
-            Toast.makeText(this, "No hay horarios disponibles", Toast.LENGTH_SHORT).show();
-        } else {
-            while (cursor.moveToNext()) {
-                // Ajusta índices según tu esquema de schedules table
-                String scheduleData = "ID: " + cursor.getString(0)
-                        + "\nFecha: " + cursor.getString(1)
-                        + "\nHora: " + cursor.getString(2);
-                scheduleList.add(scheduleData);
+    private void loadSchedules() {
+        schedRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                scheduleDisplay.clear();
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    Schedule s = child.getValue(Schedule.class);
+                    if (s != null) {
+                        String entry = "Fecha: " + s.date + " Hora: " + s.time;
+                        scheduleDisplay.add(entry);
+                    }
+                }
+                adapter.notifyDataSetChanged();
             }
-        }
-        cursor.close();
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_list_item_1,
-                scheduleList
-        );
-        scheduleListView.setAdapter(adapter);
+            @Override public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(ScheduleManagementActivity.this,
+                        "Error Firebase: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
