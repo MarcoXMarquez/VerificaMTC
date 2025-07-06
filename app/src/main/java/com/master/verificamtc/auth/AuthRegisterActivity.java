@@ -1,83 +1,97 @@
 package com.master.verificamtc.auth;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
-import android.view.View;
-import android.app.DatePickerDialog;
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import android.widget.Toast;
 
-import com.master.verificamtc.database.AppDatabase;
-import com.master.verificamtc.utils.SecurityHelper;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.master.verificamtc.R;
+import com.master.verificamtc.models.User;
 
 import java.util.Calendar;
-import java.util.Locale;
+import java.util.HashMap;
 
 public class AuthRegisterActivity extends AppCompatActivity {
-    EditText dni, names, lastNames, email, password, date;
 
-    Button registerButton;
+    private EditText etDni, etNames, etLastnames, etBirthdate, etEmail, etPassword;
+    private Button btnRegister;
+    private DatabaseReference usersRef;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_register);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-        dni = findViewById(R.id.register_dni);
-        names = findViewById(R.id.register_names);
-        lastNames = findViewById(R.id.register_lastnames);
-        email = findViewById(R.id.register_email);
-        password = findViewById(R.id.register_password);
-        date= findViewById(R.id.register_birthdate);
-        registerButton = findViewById(R.id.register_button);
 
-        date.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final Calendar calendar = Calendar.getInstance();
+        // Referencia a la rama "users" en Firebase
+        usersRef = FirebaseDatabase.getInstance()
+                .getReference("users");
 
-                int year = calendar.get(Calendar.YEAR);
-                int month = calendar.get(Calendar.MONTH);
-                int day = calendar.get(Calendar.DAY_OF_MONTH);
+        // Mapeo de vistas
+        etDni        = findViewById(R.id.register_dni);
+        etNames      = findViewById(R.id.register_names);
+        etLastnames  = findViewById(R.id.register_lastnames);
+        etBirthdate  = findViewById(R.id.register_birthdate);
+        etEmail      = findViewById(R.id.register_email);
+        etPassword   = findViewById(R.id.register_password);
+        btnRegister  = findViewById(R.id.register_button);
 
-                DatePickerDialog datePickerDialog = new DatePickerDialog(
-                        AuthRegisterActivity.this,
-                        (view, selectedYear, selectedMonth, selectedDay) -> {
-                            String fechaSeleccionada = String.format(Locale.getDefault(), "%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear);
-                            date.setText(fechaSeleccionada);
-                        },
-                        year, month, day
+        // Mostrar DatePicker al tocar el campo Fecha de nacimiento
+        etBirthdate.setOnClickListener(v -> showDatePicker());
+
+        // Acción del botón de registro
+        btnRegister.setOnClickListener(v -> attemptRegister());
+    }
+
+    private void showDatePicker() {
+        final Calendar c = Calendar.getInstance();
+        int y = c.get(Calendar.YEAR), m = c.get(Calendar.MONTH), d = c.get(Calendar.DAY_OF_MONTH);
+
+        DatePickerDialog dpd = new DatePickerDialog(this,
+                (view, year, month, dayOfMonth) -> {
+                    // Formato YYYY-MM-DD
+                    String fecha = String.format("%04d-%02d-%02d", year, month+1, dayOfMonth);
+                    etBirthdate.setText(fecha);
+                }, y, m, d);
+        dpd.show();
+    }
+
+    private void attemptRegister() {
+        String id   = etDni.getText().toString().trim();
+        String fn   = etNames.getText().toString().trim();
+        String ln   = etLastnames.getText().toString().trim();
+        String bd   = etBirthdate.getText().toString().trim();
+        String email= etEmail.getText().toString().trim();
+        String pwd  = etPassword.getText().toString().trim();
+
+        if(id.isEmpty()||fn.isEmpty()||ln.isEmpty()||bd.isEmpty()||email.isEmpty()||pwd.isEmpty()){
+            Toast.makeText(this,"Complete todos los campos",Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Referencia a /users en Firebase
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+        String key = usersRef.push().getKey();
+        User user = new User(
+                etDni.getText().toString(),
+                etNames.getText().toString(),
+                etLastnames.getText().toString(),
+                etBirthdate.getText().toString(),
+                etEmail.getText().toString(),
+                etPassword.getText().toString()
+        );
+        usersRef.child(id).setValue(user)
+                .addOnSuccessListener(a -> {
+                    Toast.makeText(this, "Usuario registrado con éxito", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show()
                 );
-
-                datePickerDialog.show();
-            }
-        });
-
-        registerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view){
-                String plainPassword = password.getText().toString().trim();
-                String hashedPassword = SecurityHelper.hashPassword(plainPassword);
-
-                AppDatabase myDB = new AppDatabase(AuthRegisterActivity.this);
-                myDB.addAuth(
-                        Integer.valueOf(dni.getText().toString().trim()),
-                        names.getText().toString().trim(),
-                        lastNames.getText().toString().trim(),
-                        date.getText().toString().trim(),
-                        email.getText().toString().trim(),
-                        hashedPassword
-                );
-            }
-        });
     }
 }
