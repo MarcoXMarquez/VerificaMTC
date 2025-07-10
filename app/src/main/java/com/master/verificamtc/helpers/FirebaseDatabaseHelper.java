@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
@@ -11,6 +12,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
     private DatabaseReference database;
@@ -226,5 +230,113 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
     public DatabaseReference getDatabaseReference() {
         return this.database;
     }
+    // ====== NUEVAS ADICIONES ======
+    public static class Question {
+        public String id;
+        public String text;
+        public String zoneType;
 
+        public Question() {}
+
+        public Question(String id, String text, String zoneType) {
+            this.id = id;
+            this.text = text;
+            this.zoneType = zoneType;
+        }
+    }
+
+    public static class Answer {
+        public String userId;
+        public String questionId;
+        public int rating;
+        public long timestamp;
+
+        public Answer() {}
+
+        public Answer(String userId, String questionId, int rating) {
+            this.userId = userId;
+            this.questionId = questionId;
+            this.rating = rating;
+            this.timestamp = System.currentTimeMillis();
+        }
+    }
+
+    public void getQuestions(String zoneType, ValueEventListener listener) {
+        database.child("questions").child(zoneType)
+                .addListenerForSingleValueEvent(listener);
+    }
+
+    // Versión actualizada para guardar respuestas como objetos Answer
+    public void saveAnswers(String userId, String zoneType, Map<String, Object> answers) {
+        // Primero validamos los datos
+        if (userId == null || zoneType == null || answers == null) {
+            Log.e("Firebase", "Datos inválidos para guardar respuestas");
+            return;
+        }
+
+        // Creamos un mapa con la estructura correcta
+        Map<String, Object> answerData = new HashMap<>();
+
+        for (Map.Entry<String, Object> entry : answers.entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith("q")) { // q1, q2, q3
+                Object value = entry.getValue();
+
+                // Creamos un objeto Answer para cada respuesta
+                Map<String, Object> answer = new HashMap<>();
+                answer.put("rating", value);
+                answer.put("timestamp", System.currentTimeMillis());
+
+                answerData.put(key, answer);
+            }
+        }
+
+        // Añadimos timestamp general
+        answerData.put("timestamp", System.currentTimeMillis());
+
+        // Guardamos en Firebase
+        database.child("answers")
+                .child(userId)
+                .child(zoneType)
+                .setValue(answerData)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Firebase", "Respuestas guardadas correctamente");
+                    // Verifica en la consola de Firebase que los datos se actualizaron
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firebase", "Error al guardar respuestas", e);
+                });
+    }
+
+
+    public void getAnswers(String userId, String zoneType, ValueEventListener listener) {
+        database.child("answers").child(userId).child(zoneType)
+                .addListenerForSingleValueEvent(listener);
+    }
+
+    // Versión compatible con tu estructura actual de Firebase (strings directos)
+    public void initializeDefaultQuestions() {
+        Map<String, Object> questions = new HashMap<>();
+
+        // Preguntas para curva (strings directos)
+        Map<String, Object> curveQuestions = new HashMap<>();
+        curveQuestions.put("q1", "¿Redujo la velocidad al ingresar a la curva?");
+        curveQuestions.put("q2", "¿Mantuvo el control del vehículo durante la curva?");
+        curveQuestions.put("q3", "¿Usó adecuadamente los espejos y señalización?");
+
+        // Preguntas para estacionamiento (strings directos)
+        Map<String, Object> parkingQuestions = new HashMap<>();
+        parkingQuestions.put("q1", "¿Respetó la señalización?");
+        parkingQuestions.put("q2", "¿Cedió el paso correctamente?");
+        parkingQuestions.put("q3", "¿Mantiene distancia de seguridad?");
+
+        questions.put("curve", curveQuestions);
+        questions.put("parking", parkingQuestions);
+
+        database.child("questions").setValue(questions)
+                .addOnSuccessListener(aVoid ->
+                        Log.d("Firebase", "Preguntas (strings) inicializadas"))
+                .addOnFailureListener(e ->
+                        Log.e("Firebase", "Error al inicializar preguntas", e));
+    }
 }
