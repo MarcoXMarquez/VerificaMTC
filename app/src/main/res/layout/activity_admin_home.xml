@@ -1,29 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:gravity="center">
+    android:background="@drawable/admin_panel_bg">
 
-    <Button
-        android:id="@+id/btnListaUsuarios"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Mostrar la lista de usuarios"
-        android:layout_marginBottom="16dp"/>
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="16dp">
 
-    <Button
-        android:id="@+id/btnListaPagos"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Lista de pagos realizados"
-        android:layout_marginBottom="16dp"/>
+        <Button
+            android:id="@+id/btnListaUsuarios"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mostrar la lista de usuarios"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginBottom="20dp"
+            android:backgroundTint="@color/admin_button"
+            android:textColor="@color/admin_button_text"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif"
+            android:padding="16dp" />
 
-    <Button
-        android:id="@+id/btnGestionHorarios"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Gestión de horarios"/>
+        <Button
+            android:id="@+id/btnListaPagos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Lista de pagos realizados"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginBottom="20dp"
+            android:backgroundTint="@color/admin_button"
+            android:textColor="@color/admin_button_text"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif"
+            android:padding="16dp" />
 
-</LinearLayout>
+        <Button
+            android:id="@+id/btnGestionHorarios"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Gestión de horarios"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginBottom="20dp"
+            android:backgroundTint="@color/admin_button"
+            android:textColor="@color/admin_button_text"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif"
+            android:padding="16dp" />
+    </LinearLayout>
+</FrameLayout>

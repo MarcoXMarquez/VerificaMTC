@@ -3,8 +3,19 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp"
-    android:gravity="center_vertical">
+    android:background="@color/admin_button"
+    android:padding="12dp"
+    android:layout_marginBottom="6dp"
+    android:elevation="3dp"
+    android:gravity="center_vertical"
+    android:layout_marginHorizontal="4dp">
+
+    <ImageView
+        android:id="@+id/ivUserIcon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="12dp"
+        android:src="@drawable/user_payment_1" />
 
     <TextView
         android:id="@+id/tvUserName"
@@ -12,11 +23,18 @@
         android:layout_weight="1"
         android:layout_height="wrap_content"
         android:text="Usuario Nombre Apellido"
-        android:textSize="16sp" />
+        android:textSize="18sp"
+        android:textColor="@color/admin_button_text"
+        android:fontFamily="sans-serif" />
 
     <Button
         android:id="@+id/btnTogglePay"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Marcar Pago" />
+        android:layout_height="36dp"
+        android:text="Marcar Pago"
+        android:textColor="@color/admin_button_text"
+        android:backgroundTint="@color/soft_orange"
+        android:textStyle="bold"
+        android:paddingHorizontal="18dp"
+        android:stateListAnimator="@animator/btn_press_animator"/>
 </LinearLayout>

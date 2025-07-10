@@ -3,26 +3,29 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:translationY="20dp">
+    android:background="@drawable/dashboard_background"
+    android:paddingTop="72dp"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/titleUserList"
         android:layout_width="wrap_content"
-        android:layout_height="641dp"
-        android:orientation="vertical"
-        android:translationY="14sp">
+        android:layout_height="wrap_content"
+        android:text="Lista de Usuarios Registrados"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/admin_text"
+        android:fontFamily="sans-serif"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="24dp"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Lista de Usuarios Registrados"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+    <ListView
+        android:id="@+id/userListView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="16dp"
+        android:background="@android:color/transparent"/>
 
-        <ListView
-            android:id="@+id/userListView"
-            android:layout_width="370dp"
-            android:layout_height="598dp"
-            android:layout_marginTop="16dp" />
-    </LinearLayout>
 </LinearLayout>
