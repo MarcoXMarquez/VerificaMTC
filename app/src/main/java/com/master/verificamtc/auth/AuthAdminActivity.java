@@ -48,7 +48,7 @@ public class AuthAdminActivity extends AppCompatActivity {
                     } else {
                         loginAttempts++;
                         if (loginAttempts >= MAX_ATTEMPTS) {
-                            //blockAccessTemporarily();
+                            blockAccessTemporarily();
                         } else {
                             Toast.makeText(this, "Credenciales incorrectas. Intentos: " +
                                     (MAX_ATTEMPTS - loginAttempts), Toast.LENGTH_SHORT).show();
