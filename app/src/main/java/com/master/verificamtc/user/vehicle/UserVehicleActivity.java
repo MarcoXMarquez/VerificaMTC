@@ -73,7 +73,14 @@ public class UserVehicleActivity extends AppCompatActivity {
 
             // Usar el helper para guardar
             FirebaseDatabaseHelper dbHelper = new FirebaseDatabaseHelper(this);
-            dbHelper.addVehicle(vehicle);
+            dbHelper.addVehicle(vehicle, task -> {
+                if (task.isSuccessful()) {
+                    Toast.makeText(this, "Vehículo guardado", Toast.LENGTH_SHORT).show();
+                    finish(); // Regresar al dashboard
+                } else {
+                    Toast.makeText(this, "Error al guardar", Toast.LENGTH_SHORT).show();
+                }
+            });
 
         } catch (NumberFormatException e) {
             Toast.makeText(this, "El año debe ser un número válido", Toast.LENGTH_SHORT).show();

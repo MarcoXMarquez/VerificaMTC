@@ -198,7 +198,6 @@ public class UserDashboardActivity extends AppCompatActivity {
 
     // Button click methods
     public void goToSchedule(View view) {
-        // Primero necesitamos obtener el scheduleId del usuario
         mDatabase.child("users").child(userId).child("schedules")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -206,25 +205,37 @@ public class UserDashboardActivity extends AppCompatActivity {
                         if (dataSnapshot.exists()) {
                             for (DataSnapshot scheduleSnapshot : dataSnapshot.getChildren()) {
                                 String scheduleId = scheduleSnapshot.getKey();
-                                Intent intent = new Intent(UserDashboardActivity.this, UserScheduleActivity.class);
+                                Intent intent = new Intent(UserDashboardActivity.this,
+                                        UserScheduleActivity.class);
                                 intent.putExtra("SCHEDULE_ID", scheduleId);
-                                startActivity(intent);
-                                return; // Solo tomamos el primer schedule si hay múltiples
+                                intent.putExtra("USER_ID", userId);
+                                // Cambia startActivity por startActivityForResult
+                                startActivityForResult(intent, 1); // 1 es un código de request
+                                return;
                             }
                         }
-                        // Si no hay schedules
                         Toast.makeText(UserDashboardActivity.this,
-                                "No tienes horarios asignados", Toast.LENGTH_SHORT).show();
-                        // No iniciamos la actividad, el usuario se queda en el dashboard
+                                "No tienes horarios asignados",
+                                Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                         Toast.makeText(UserDashboardActivity.this,
-                                "Error al verificar horarios", Toast.LENGTH_SHORT).show();
-                        // En caso de error, también nos quedamos en el dashboard
+                                "Error al verificar horarios",
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    // Añade este método para manejar el resultado
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) { // Mismo código que usamos en startActivityForResult
+            // Recargar datos cuando regresamos de UserScheduleActivity
+            loadUserData();
+        }
     }
     public void goToVehicleData(View view) {
         Intent intent = new Intent(this, UserVehicleActivity.class);
@@ -247,5 +258,10 @@ public class UserDashboardActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+    protected void onResume() {
+        super.onResume();
+        // Volver a cargar los datos para actualizar la UI
+        loadUserData();
     }
 }

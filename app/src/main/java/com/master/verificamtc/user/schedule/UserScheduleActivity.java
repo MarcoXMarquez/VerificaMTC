@@ -102,4 +102,10 @@ public class UserScheduleActivity extends AppCompatActivity {
                     }
                 });
     }
+    @Override
+    public void onBackPressed() {
+        // Indica que la actividad terminó exitosamente
+        setResult(RESULT_OK);
+        super.onBackPressed();
+    }
 }

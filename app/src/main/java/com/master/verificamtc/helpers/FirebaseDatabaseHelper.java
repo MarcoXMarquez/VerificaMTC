@@ -6,7 +6,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import android.widget.Toast;
-
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -199,31 +200,39 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
                 child("paymentStatus").setValue(isPaid);
     }
 
-    public void addVehicle(Car vehicle) {
+    public void addVehicle(Car vehicle, OnCompleteListener<Void> completionListener) {
         if (vehicle == null || vehicle.plate == null || vehicle.plate.isEmpty()) {
             Toast.makeText(context, "Placa del vehículo inválida", Toast.LENGTH_SHORT).show();
+            if (completionListener != null) {
+                // Simplemente no llamamos al listener en caso de error temprano
+                // O puedes crear un Task fallido usando Tasks.forException() si tienes acceso a él
+            }
             return;
         }
 
-        // Normalizar placa para clave de Firebase
         String normalizedPlate = vehicle.plate.replace("-", "_");
 
-        // Guardar vehículo bajo el nodo del usuario
         database.child("users").child(vehicle.userId)
                 .child("vehicles").child(normalizedPlate)
                 .setValue(vehicle)
-                .addOnSuccessListener(aVoid -> {
-                    // Actualizar estado de vehículo registrado
-                    database.child("users").child(vehicle.userId)
-                            .child("hasVehicle").setValue(true);
-
-                    Toast.makeText(context, "Vehículo registrado exitosamente", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(context, "Error al registrar vehículo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        database.child("users").child(vehicle.userId)
+                                .child("hasVehicle").setValue(true)
+                                .addOnCompleteListener(updateTask -> {
+                                    if (completionListener != null) {
+                                        completionListener.onComplete(updateTask);
+                                    }
+                                    // Mostrar mensaje de éxito/error
+                                });
+                    } else {
+                        if (completionListener != null) {
+                            completionListener.onComplete(task);
+                        }
+                        // Mostrar mensaje de error
+                    }
                 });
     }
-
     public void getVehicleByPlate(String plate, ValueEventListener listener) {
         String normalizedPlate = plate.replace("-", "_");
         database.child("vehicles").child(normalizedPlate).addListenerForSingleValueEvent(listener);
