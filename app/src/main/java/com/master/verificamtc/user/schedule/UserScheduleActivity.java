@@ -16,6 +16,7 @@ import com.master.verificamtc.helpers.FirebaseDatabaseHelper;
 public class UserScheduleActivity extends AppCompatActivity {
 
     private TextView tvScheduleInfo;
+    private String scheduleId;
     private String userId;
 
     @Override
@@ -24,16 +25,55 @@ public class UserScheduleActivity extends AppCompatActivity {
         setContentView(R.layout.activity_user_schedule);
 
         tvScheduleInfo = findViewById(R.id.tvScheduleInfo);
-        userId = getIntent().getStringExtra("USER_DNI");
 
-        loadScheduleData();
+        // Intentamos obtener el scheduleId primero
+        scheduleId = getIntent().getStringExtra("SCHEDULE_ID");
+        userId = getIntent().getStringExtra("USER_ID"); // Fallback por si acaso
+
+        if (scheduleId != null) {
+            loadScheduleById();
+        } else if (userId != null) {
+            loadScheduleByUser();
+        } else {
+            tvScheduleInfo.setText("No se proporcionó información de horario");
+        }
     }
 
-    private void loadScheduleData() {
+    private void loadScheduleById() {
         FirebaseDatabase.getInstance().getReference()
-                .child("users")
-                .child(userId)
                 .child("schedules")
+                .child(scheduleId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            String date = dataSnapshot.child("date").getValue(String.class);
+                            String time = dataSnapshot.child("time").getValue(String.class);
+
+                            String scheduleInfo = "Horario asignado:\n\n" +
+                                    "• Fecha: " + date + "\n" +
+                                    "• Hora: " + time;
+
+                            tvScheduleInfo.setText(scheduleInfo);
+                        } else {
+                            tvScheduleInfo.setText("El horario no existe");
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Toast.makeText(UserScheduleActivity.this,
+                                "Error al cargar horario", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void loadScheduleByUser() {
+        // Mantenemos el método original como fallback
+        FirebaseDatabase.getInstance().getReference()
+                .child("schedules")
+                .orderByChild("userId")
+                .equalTo(userId)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -41,34 +81,15 @@ public class UserScheduleActivity extends AppCompatActivity {
                             StringBuilder scheduleInfo = new StringBuilder("Horarios asignados:\n\n");
 
                             for (DataSnapshot scheduleSnapshot : dataSnapshot.getChildren()) {
-                                String scheduleId = scheduleSnapshot.getKey();
+                                String date = scheduleSnapshot.child("date").getValue(String.class);
+                                String time = scheduleSnapshot.child("time").getValue(String.class);
 
-                                // Obtener detalles del horario
-                                FirebaseDatabase.getInstance().getReference()
-                                        .child("schedules")
-                                        .child(scheduleId)
-                                        .addListenerForSingleValueEvent(new ValueEventListener() {
-                                            @Override
-                                            public void onDataChange(DataSnapshot scheduleDetailSnapshot) {
-                                                if (scheduleDetailSnapshot.exists()) {
-                                                    String date = scheduleDetailSnapshot.child("date").getValue(String.class);
-                                                    String time = scheduleDetailSnapshot.child("time").getValue(String.class);
-
-                                                    scheduleInfo.append("• Fecha: ").append(date)
-                                                            .append("\n  Hora: ").append(time)
-                                                            .append("\n\n");
-
-                                                    tvScheduleInfo.setText(scheduleInfo.toString());
-                                                }
-                                            }
-
-                                            @Override
-                                            public void onCancelled(DatabaseError databaseError) {
-                                                Toast.makeText(UserScheduleActivity.this,
-                                                        "Error al cargar horario", Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
+                                scheduleInfo.append("• Fecha: ").append(date)
+                                        .append("\n  Hora: ").append(time)
+                                        .append("\n\n");
                             }
+
+                            tvScheduleInfo.setText(scheduleInfo.toString());
                         } else {
                             tvScheduleInfo.setText("No tienes horarios asignados");
                         }

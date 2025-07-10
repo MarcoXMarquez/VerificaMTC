@@ -197,11 +197,34 @@ public class UserDashboardActivity extends AppCompatActivity {
 
     // Button click methods
     public void goToSchedule(View view) {
-        Intent intent = new Intent(this, UserScheduleActivity.class);
-        intent.putExtra("USER_DNI", userId);
-        startActivity(intent);
-    }
+        // Primero necesitamos obtener el scheduleId del usuario
+        mDatabase.child("users").child(userId).child("schedules")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            for (DataSnapshot scheduleSnapshot : dataSnapshot.getChildren()) {
+                                String scheduleId = scheduleSnapshot.getKey();
+                                Intent intent = new Intent(UserDashboardActivity.this, UserScheduleActivity.class);
+                                intent.putExtra("SCHEDULE_ID", scheduleId);
+                                startActivity(intent);
+                                return; // Solo tomamos el primer schedule si hay múltiples
+                            }
+                        }
+                        // Si no hay schedules
+                        Toast.makeText(UserDashboardActivity.this,
+                                "No tienes horarios asignados", Toast.LENGTH_SHORT).show();
+                        // No iniciamos la actividad, el usuario se queda en el dashboard
+                    }
 
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Toast.makeText(UserDashboardActivity.this,
+                                "Error al verificar horarios", Toast.LENGTH_SHORT).show();
+                        // En caso de error, también nos quedamos en el dashboard
+                    }
+                });
+    }
     public void goToVehicleData(View view) {
         Intent intent = new Intent(this, UserVehicleActivity.class);
         intent.putExtra("USER_ID", userId);

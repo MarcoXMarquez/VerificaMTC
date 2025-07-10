@@ -81,6 +81,9 @@
         <activity
             android:name=".admin.dashboard.UserDetailsActivity"
             android:exported="true"/>
+        <activity
+            android:name=".user.schedule.UserScheduleActivity"
+            android:exported="true"/>
         <!-- make sure within the application tag, otherwise app will crash with XmlResourceParser errors -->
         <provider
             android:name="androidx.core.content.FileProvider"
