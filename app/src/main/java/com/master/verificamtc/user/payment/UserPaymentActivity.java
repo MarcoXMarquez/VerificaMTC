@@ -28,7 +28,8 @@ public class UserPaymentActivity extends AppCompatActivity {
     private final DatabaseReference database = FirebaseDatabase.getInstance().getReference();
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
     private String userId;
-    private String examId = "";
+    private String examType;
+    private double examPrice;
 
     // Control de formato
     private boolean isFormatting;
@@ -40,8 +41,8 @@ public class UserPaymentActivity extends AppCompatActivity {
 
         // Obtener datos del intent
         userId = getIntent().getStringExtra("USER_ID");
-        examId = getIntent().getStringExtra("exam_id");
-        if (examId == null) examId = "";
+        examType = getIntent().getStringExtra("exam_type");
+        examPrice = getIntent().getDoubleExtra("exam_price", 0.0);
 
         // Inicializar vistas
         initViews();
@@ -108,7 +109,7 @@ public class UserPaymentActivity extends AppCompatActivity {
             }
         });
 
-        // Listener para fecha de expiración (MEJORADO)
+        // Listener para fecha de expiración
         etExpiryDate.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
@@ -214,30 +215,31 @@ public class UserPaymentActivity extends AppCompatActivity {
         String expiryDate = etExpiryDate.getText().toString();
         String cvv = etCvv.getText().toString();
 
-        // Obtener ID de usuario
+        // Obtener ID de usuario si no estaba en el Intent
         if (userId == null && auth.getCurrentUser() != null) {
             userId = auth.getCurrentUser().getUid();
         }
 
-        // Crear datos del pago
-        Map<String, Object> paymentData = new HashMap<>();
-        paymentData.put("amount", 150.00);
-        paymentData.put("date", System.currentTimeMillis());
-        paymentData.put("concept", "Pago de examen MTC");
-        paymentData.put("method", "visa");
-        paymentData.put("card_last_four", cardNumber.substring(cardNumber.length() - 4));
-        paymentData.put("status", "completed");
-        paymentData.put("exam_id", examId);
-        paymentData.put("user_id", userId);
-
         // Generar ID único para el pago
         String paymentId = database.child("payments").push().getKey();
 
-        // Guardar en Realtime Database
+        // Crear datos del pago
+        Map<String, Object> paymentData = new HashMap<>();
+        paymentData.put("amount", examPrice);
+        paymentData.put("date", System.currentTimeMillis());
+        paymentData.put("concept", "Pago de examen MTC - " + examType);
+        paymentData.put("method", "visa");
+        paymentData.put("card_last_four", cardNumber.substring(cardNumber.length() - 4));
+        paymentData.put("status", "completed");
+        paymentData.put("user_id", userId);
+        paymentData.put("exam_type", examType);
+
+        // Guardar en /payments/{paymentId}
         database.child("payments").child(paymentId)
                 .setValue(paymentData)
                 .addOnSuccessListener(aVoid -> {
-                    updateUserPaymentStatus();
+                    // Actualizar estado del usuario
+                    updateUserPaymentStatus(paymentId);
                     Toast.makeText(this, "Pago procesado exitosamente", Toast.LENGTH_LONG).show();
                     finish();
                 })
@@ -246,15 +248,18 @@ public class UserPaymentActivity extends AppCompatActivity {
                 });
     }
 
-    private void updateUserPaymentStatus() {
-        if (userId != null) {
-            Map<String, Object> updates = new HashMap<>();
-            updates.put("paymentStatus", true);
-            updates.put("paymentMethod", "visa");
-            updates.put("lastPaymentDate", System.currentTimeMillis());
+    private void updateUserPaymentStatus(String paymentId) {
+        if (userId == null) return;
 
-            database.child("users").child(userId)
-                    .updateChildren(updates);
-        }
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("paymentStatus", true);
+        updates.put("paymentMethod", "visa");
+        updates.put("lastPaymentDate", System.currentTimeMillis());
+        updates.put("exam_type", examType);
+        updates.put("exam_status", "pending");
+        updates.put("lastPaymentId", paymentId);
+
+        database.child("users").child(userId)
+                .updateChildren(updates);
     }
 }

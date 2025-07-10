@@ -84,6 +84,7 @@
         <activity
             android:name=".user.schedule.UserScheduleActivity"
             android:exported="true"/>
+        <activity android:name=".user.payment.ExamSelectionActivity" />
         <!-- make sure within the application tag, otherwise app will crash with XmlResourceParser errors -->
         <provider
             android:name="androidx.core.content.FileProvider"

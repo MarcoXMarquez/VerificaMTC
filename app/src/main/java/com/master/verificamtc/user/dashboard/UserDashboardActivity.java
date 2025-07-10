@@ -19,6 +19,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.master.verificamtc.R;
 import com.master.verificamtc.helpers.FirebaseDatabaseHelper;
 import com.master.verificamtc.user.circuit.UserCircuitActivity;
+import com.master.verificamtc.user.payment.ExamSelectionActivity;
 import com.master.verificamtc.user.schedule.UserScheduleActivity;
 import com.master.verificamtc.user.payment.PaymentActivity;
 import com.master.verificamtc.user.vehicle.UserVehicleActivity;
@@ -238,7 +239,7 @@ public class UserDashboardActivity extends AppCompatActivity {
     }
 
     public void goToPayments(View view) {
-        Intent intent = new Intent(this, PaymentActivity.class);
+        Intent intent = new Intent(this, ExamSelectionActivity.class);
         intent.putExtra("USER_ID", userId);
         startActivity(intent);
     }
