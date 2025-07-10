@@ -1,15 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFF</color>
-    <color name="red">#951239</color>
-    <color name="gray">#8A8888</color>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <!-- Colores vibrantes complementarios -->
+    <color name="colorError">#F44336</color> <!-- Rojo error -->
+    <color name="colorInfo">#03A9F4</color> <!-- Azul informativo -->
 
-    <color name="light_gray_background">#F0F0F0</color>
+    <!-- Tonos neutros para texto y fondo -->
+    <color name="backgroundLight">#FFF8E1</color>
+    <color name="backgroundCard">#FFFFFF</color>
+    <color name="textPrimary">#212121</color>
+    <color name="textSecondary">#757575</color>
+
+    <!-- Estilos decorativos adicionales -->
+    <color name="borderHighlight">#B39DDB</color>
+    <color name="dividerLine">#BDBDBD</color>
+
+    <!-- Paleta llamativa y moderna -->
+    <color name="colorSuccess">#388E3C</color>
+    <color name="colorWarning">#FFA000</color>
+    <color name="colorDanger">#D32F2F</color>
+    <color name="colorBackground">#E8EAF6</color>
+    <color name="colorCard">#FFFFFF</color>
+    <color name="colorTextPrimary">#212121</color>
+    <color name="colorTextSecondary">#757575</color>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>     <color name="red">#D32F2F</color> <!-- Rojo intenso -->
+    <color name="gray">#757575</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+
+    <!-- Nuevos colores sugeridos -->
+    <color name="light_blue">#03A9F4</color>
+    <color name="soft_orange">#FF9800</color>
+    <color name="soft_green">#4CAF50</color>
+    <color name="soft_red">#F44336</color>
+    <color name="light_gray_background">#F5F5F5</color>
     <color name="text_primary">#212121</color>
     <color name="text_secondary">#757575</color>
-    <color name="card_shadow">#1E000000</color> <!-- Negro con 12% opacidad -->
+    <color name="card_shadow">#1E000000</color>
+    <color name="colorAccent">#43CEA2</color>
+    <color name="colorPrimary">#185A9D</color>
+    <color name="cardGradientStart">#F3F9FB</color>
+    <color name="cardGradientEnd">#B6E0FE</color>
+    <color name="admin_button">#FFEEC8</color>
+    <color name="admin_button_text">#37474F</color>
+    <color name="admin_text">#FFEEC8</color>
+    <color name="success_green">#43cea2</color>
+    <color name="warning_orange">#ff9800</color>
+    <color name="payment_item_title">#212121</color>
+    <color name="payment_item_secondary">#888888</color>
+    <color name="button_orange">#FF9800</color>
+    <color name="button_aqua">#26D9B2</color>
+    <color name="admin_icon">#C35335</color>
+    <color name="admin_text_2">#452214</color>
+    <color name="admin_hint">#C3AFA2</color>
+    <color name="orange_strong">#E26B22</color>
+    <color name="schedule_button_text">#FFF5DC</color>
+    <color name="bg_schedule_add_btn">#E26B22</color>
+    <color name="transparent">#00000000</color>
+    <color name="schedule_icon_cream">#FFE6B7</color>
+    <color name="schedule_icon_orange">#E66221</color>
+    <color name="schedule_item_text_default">#362565</color> <!-- Para items naranja -->
+    <color name="schedule_item_text_orange">#f27822</color> <!-- Para items crema -->
 </resources>
