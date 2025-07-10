@@ -1,163 +1,171 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@color/background">
-
-    <!-- Vista previa de la tarjeta Visa -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginBottom="24dp"
-        app:cardBackgroundColor="@color/card_background"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="8dp">
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="16dp">
-
-            <!-- Logo Visa -->
-            <ImageView
-                android:layout_width="80dp"
-                android:layout_height="30dp"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentEnd="true"
-                android:src="@drawable/ic_visa" />
-
-            <!-- Número de tarjeta -->
-            <TextView
-                android:id="@+id/card_number"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:text="1234 5678 9012 3456"
-                android:textColor="@color/white"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <!-- Información inferior -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:orientation="horizontal">
-
-                <!-- Nombre del titular -->
-                <TextView
-                    android:id="@+id/card_holder"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="NOMBRE DEL TITULAR"
-                    android:textColor="@color/white"
-                    android:textSize="16sp" />
-
-                <!-- Fecha de expiración -->
-                <TextView
-                    android:id="@+id/card_expiry"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="MM/AA"
-                    android:textColor="@color/white"
-                    android:textSize="16sp" />
-
-                <!-- CVV (opcional) -->
-                <TextView
-                    android:id="@+id/card_cvv"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:text="•••"
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    android:visibility="gone" />
-            </LinearLayout>
-        </RelativeLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- Formulario de pago -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:hint="Número de tarjeta">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_card_number"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:maxLength="19" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:hint="Nombre del titular">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_card_holder"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textCapCharacters" />
-    </com.google.android.material.textfield.TextInputLayout>
+    android:fillViewport="true"
+    android:background="@color/light_gray_background">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="vertical"
+        android:padding="16dp">
 
+        <!-- Tarjeta Visa Interactiva -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/visa_card_preview"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/visa_card_background"
+                android:padding="20dp">
+
+                <!-- Logo Visa -->
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentEnd="true"
+                    android:src="@drawable/ic_visa" />
+
+                <!-- Número de tarjeta -->
+                <TextView
+                    android:id="@+id/card_number_preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="•••• •••• •••• ••••"
+                    android:textColor="@color/white"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1"/>
+
+                <!-- Información del titular -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:orientation="horizontal">
+
+                    <!-- Nombre del titular -->
+                    <TextView
+                        android:id="@+id/card_holder_preview"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="NOMBRE DEL TITULAR"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:maxLines="1"
+                        android:ellipsize="end"/>
+
+                    <!-- Fecha de expiración -->
+                    <TextView
+                        android:id="@+id/card_expiry_preview"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MM/AA"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:minWidth="48dp"/> <!-- Asegura espacio para MM/AA -->
+                </LinearLayout>
+            </RelativeLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Formulario de pago -->
         <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            android:hint="MM/AA">
+            android:layout_marginBottom="12dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:hint="Número de tarjeta">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_expiry_date"
+                android:id="@+id/et_card_number"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="number"
-                android:maxLength="5"
-                android:digits="0123456789/" />
+                android:maxLength="19"
+                android:digits="0123456789 "/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="CVV">
+            android:layout_marginBottom="12dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:hint="Nombre del titular">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_cvv"
+                android:id="@+id/et_card_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="numberPassword"
-                android:maxLength="3" />
+                android:inputType="textCapCharacters"
+                android:maxLength="30"/>
         </com.google.android.material.textfield.TextInputLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:hint="MM/AA">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_expiry_date"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:maxLength="5"
+                    android:digits="0123456789/"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:hint="CVV">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_cvv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberPassword"
+                    android:maxLength="4"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+
+        <!-- Botones de acción -->
+        <Button
+            android:id="@+id/btn_confirm_payment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="CONFIRMAR PAGO"
+            style="@style/Widget.MaterialComponents.Button"/>
+
+        <Button
+            android:id="@+id/btn_back_to_options"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="VOLVER"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
     </LinearLayout>
-
-    <!-- Botones de acción -->
-    <Button
-        android:id="@+id/btn_confirm_payment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Confirmar Pago"
-        style="@style/Widget.MaterialComponents.Button"/>
-
-    <Button
-        android:id="@+id/btn_back_to_options"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Volver"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
-</LinearLayout>
+</ScrollView>

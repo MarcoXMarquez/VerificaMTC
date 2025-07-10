@@ -40,7 +40,7 @@ public class AuthUserActivity extends AppCompatActivity {
         // Initialize Firebase persistence FIRST
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_userlogin);
+        setContentView(R.layout.activity_user_login);
 
         // Initialize Firebase components
         mAuth = FirebaseAuth.getInstance();

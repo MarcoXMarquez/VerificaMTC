@@ -21,7 +21,7 @@ public class AuthAdminActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_adminlogin);
+        setContentView(R.layout.activity_admin_login);
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
@@ -31,7 +31,7 @@ public class AuthAdminActivity extends AppCompatActivity {
             String password = ((EditText) findViewById(R.id.password)).getText().toString();
 
             if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Ingrese email y contraseña", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this.peekAvailableContext(), "Ingrese email y contraseña", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -48,7 +48,7 @@ public class AuthAdminActivity extends AppCompatActivity {
                     } else {
                         loginAttempts++;
                         if (loginAttempts >= MAX_ATTEMPTS) {
-                            blockAccessTemporarily();
+                            //blockAccessTemporarily();
                         } else {
                             Toast.makeText(this, "Credenciales incorrectas. Intentos: " +
                                     (MAX_ATTEMPTS - loginAttempts), Toast.LENGTH_SHORT).show();

@@ -12,11 +12,22 @@
     <color name="text_primary">#212121</color>
     <color name="text_secondary">#757575</color>
     <color name="card_shadow">#1E000000</color> <!-- Negro con 12% opacidad -->
-        <color name="purple_200">#FFBB86FC</color>
-        <color name="purple_500">#FF6200EE</color>
-        <color name="purple_700">#FF3700B3</color>
-        <color name="teal_200">#FF03DAC5</color>
-        <color name="teal_700">#FF018786</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
 
+    <!-- 👇 Colores que necesitas agregar 👇 -->
+    <color name="visa_blue_light">#FF64B5F6</color> <!-- Ejemplo de color azul claro, ajusta según necesites -->
+    <color name="visa_blue_dark">#FF1976D2</color>  <!-- Ejemplo de color azul oscuro, ajusta según necesites -->
+    <color name="background">#FFFFFFFF</color>      <!-- Ejemplo de color de fondo (blanco), ajusta según necesites -->
 
+    <color name="card_default">#3F51B5</color>
+    <color name="card_visa">#1A1F71</color>
+    <color name="card_mastercard">#EB001B</color>
+    <color name="card_amex">#016FD0</color>
+    <color name="card_credit">#4CAF50</color>
+    <color name="card_debit">#FF9800</color>
+    <!-- <color name="white">#FFFFFFFF</color> -->
 </resources>

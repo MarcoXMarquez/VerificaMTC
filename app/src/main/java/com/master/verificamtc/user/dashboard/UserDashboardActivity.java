@@ -17,6 +17,7 @@ import com.master.verificamtc.R;
 import com.master.verificamtc.helpers.FirebaseDatabaseHelper;
 import com.master.verificamtc.user.circuit.UserCircuitActivity;
 import com.master.verificamtc.user.exam.UserExamActivity;
+import com.master.verificamtc.user.payment.PaymentActivity;
 import com.master.verificamtc.user.payment.UserPaymentActivity;
 import com.master.verificamtc.user.vehicle.UserVehicleActivity;
 
@@ -27,7 +28,7 @@ public class UserDashboardActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_user_lobby);
+        setContentView(R.layout.activity_user_dashboard);
 
         // Get user ID from Intent
         userId = getIntent().getStringExtra("USER_ID");
@@ -116,7 +117,7 @@ public class UserDashboardActivity extends AppCompatActivity {
     }
 
     public void goToPayments(View view) {
-        Intent intent = new Intent(this, UserPaymentActivity.class);
+        Intent intent = new Intent(this, PaymentActivity.class);
         intent.putExtra("USER_ID", userId);
         startActivity(intent);
     }

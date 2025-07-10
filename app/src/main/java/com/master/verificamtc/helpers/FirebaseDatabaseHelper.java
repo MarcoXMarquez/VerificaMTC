@@ -193,6 +193,38 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
                 child("paymentStatus").setValue(isPaid);
     }
 
-    // Clase modelo para User
+    public void addVehicle(Car vehicle) {
+        if (vehicle == null || vehicle.plate == null || vehicle.plate.isEmpty()) {
+            Toast.makeText(context, "Placa del vehículo inválida", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Normalizar placa para clave de Firebase
+        String normalizedPlate = vehicle.plate.replace("-", "_");
+
+        database.child("vehicles").child(normalizedPlate)
+                .setValue(vehicle)
+                .addOnSuccessListener(aVoid -> {
+                    // Actualizar referencia en usuario si existe
+                    if (vehicle.userId != null && !vehicle.userId.isEmpty()) {
+                        database.child("users").child(vehicle.userId)
+                                .child("vehicles").child(normalizedPlate)
+                                .setValue(true);
+                    }
+                    Toast.makeText(context, "Vehículo registrado exitosamente", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(context, "Error al registrar vehículo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+    }
+
+    public void getVehicleByPlate(String plate, ValueEventListener listener) {
+        String normalizedPlate = plate.replace("-", "_");
+        database.child("vehicles").child(normalizedPlate).addListenerForSingleValueEvent(listener);
+    }
+
+    public DatabaseReference getDatabaseReference() {
+        return this.database;
+    }
 
 }

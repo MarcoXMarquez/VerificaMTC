@@ -36,6 +36,12 @@ android {
     aaptOptions {
         noCompress += listOf("tflite", "lite") // Asegúrate de incluir las extensiones necesarias
     }
+    buildFeatures {
+        dataBinding = true
+        viewBinding = true  // Añade esta línea
+
+    }
+
 }
 
 dependencies {
@@ -77,7 +83,8 @@ dependencies {
     implementation(platform(libs.firebase.bom)) // Gestión de versiones
     implementation(libs.firebase.database)
     implementation(libs.play.services.mlkit.face.detection)
-    implementation(libs.tensorflow.lite.metadata) // Base de datos
+    implementation(libs.tensorflow.lite.metadata)
+    implementation(libs.firebase.firestore) // Base de datos
 
 
 
@@ -85,4 +92,9 @@ dependencies {
     testImplementation(libs.junit) // Pruebas unitarias
     androidTestImplementation(libs.ext.junit) // Pruebas Android
     androidTestImplementation(libs.espresso.core) // Pruebas UI
+    implementation (libs.retrofit)
+    implementation (libs.retrofit.converter.gson)
+    implementation (libs.okhttp.logging.interceptor)
+
+
 }

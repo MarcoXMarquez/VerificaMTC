@@ -1,0 +1,12 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="40dp"
+    android:height="30dp"
+    android:viewportWidth="40"
+    android:viewportHeight="30">
+    <path
+        android:fillColor="@color/card_debit"
+        android:pathData="M5,5h30v20H5V5zm2,2v16h26V7H7zm3,3h20v10H10V10zm2,2h16v6H12v-6z"/>
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M15,12h3v3h-3z"/>
+</vector>

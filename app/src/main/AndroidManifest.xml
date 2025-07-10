@@ -6,12 +6,15 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
 
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -62,10 +65,16 @@
             android:name=".user.vehicle.UserVehicleActivity"
             android:exported="true" />
         <activity
+            android:name=".user.payment.UserPaymentActivity"
+            android:exported="true" />
+        <activity
             android:name=".admin.dashboard.RegisterActivity"
             android:exported="true" />
         <activity
             android:name=".admin.dashboard.RecognitionActivity"
+            android:exported="true" />
+        <activity
+            android:name=".user.payment.PaymentActivity"
             android:exported="true" />
 
         <!-- make sure within the application tag, otherwise app will crash with XmlResourceParser errors -->

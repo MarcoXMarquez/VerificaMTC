@@ -7,8 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.util.Pair;
 
-import com.master.verificamtc.admin.dashboard.FaceDetectionActivity;
-
 import org.tensorflow.lite.Interpreter;
 
 import java.io.FileInputStream;
@@ -45,7 +43,7 @@ public class TFLiteFaceRecognition
 
     private Interpreter tfLite;
 
-    DBHelper dbHelper;
+    FaceDatabaseHelper dbHelper;
     HashMap<String, FaceClassifier.Recognition> registered = new HashMap<>();
 
     public void register(String name, Recognition rec) {
@@ -55,7 +53,7 @@ public class TFLiteFaceRecognition
 
 
     private TFLiteFaceRecognition(Context context) {
-        dbHelper = new DBHelper(context);
+        dbHelper = new FaceDatabaseHelper(context);
         registered = dbHelper.getAllFaces();
     }
 

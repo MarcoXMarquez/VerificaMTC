@@ -139,8 +139,11 @@ public class AdminDashboardActivity extends AppCompatActivity {
             UserData user = users.get(position);
             holder.tvUserData.setText(user.details);
 
+            // En AdminDashboardActivity.java, en el método getView del adaptador:
             holder.btnRegisterFace.setOnClickListener(v -> {
-                Intent intent = new Intent(AdminDashboardActivity.this, FaceDetectionActivity.class);
+                Intent intent = new Intent(AdminDashboardActivity.this, RegisterActivity.class);
+                // Pasar el DNI como extra
+                intent.putExtra("USER_DNI", user.dni);
                 startActivity(intent);
             });
 

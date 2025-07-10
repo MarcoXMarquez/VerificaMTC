@@ -3,231 +3,223 @@ package com.master.verificamtc.user.payment;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.master.verificamtc.databinding.FormVisaPaymentBinding;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import java.util.HashMap;
 import java.util.Map;
+import android.widget.TextView;
+import com.master.verificamtc.R;
 
 public class UserPaymentActivity extends AppCompatActivity {
 
-    private FormVisaPaymentBinding binding;
-    private boolean isFormattingCardNumber = false;
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    // Vistas del formulario
+    private TextInputEditText etCardNumber, etCardHolder, etExpiryDate, etCvv;
+    private Button btnConfirmPayment, btnBackToOptions;
+
+    // Vistas de la tarjeta interactiva
+    private TextView cardNumberPreview, cardHolderPreview, cardExpiryPreview;
+
+    // Firebase
+    private final DatabaseReference database = FirebaseDatabase.getInstance().getReference();
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
+    private String userId;
     private String examId = "";
+
+    // Control de formato
+    private boolean isFormatting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = FormVisaPaymentBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        setContentView(R.layout.form_visa_payment);
 
+        // Obtener datos del intent
+        userId = getIntent().getStringExtra("USER_ID");
         examId = getIntent().getStringExtra("exam_id");
-        if (examId == null) {
-            examId = "";
-        }
+        if (examId == null) examId = "";
 
-        setupCardPreview();
-        setupFieldFormatters();
+        // Inicializar vistas
+        initViews();
+
+        // Configurar listeners
+        setupTextWatchers();
         setupButtons();
     }
 
+    private void initViews() {
+        etCardNumber = findViewById(R.id.et_card_number);
+        etCardHolder = findViewById(R.id.et_card_holder);
+        etExpiryDate = findViewById(R.id.et_expiry_date);
+        etCvv = findViewById(R.id.et_cvv);
+        btnConfirmPayment = findViewById(R.id.btn_confirm_payment);
+        btnBackToOptions = findViewById(R.id.btn_back_to_options);
+        cardNumberPreview = findViewById(R.id.card_number_preview);
+        cardHolderPreview = findViewById(R.id.card_holder_preview);
+        cardExpiryPreview = findViewById(R.id.card_expiry_preview);
+    }
+
+    private void setupTextWatchers() {
+        // Listener para número de tarjeta
+        etCardNumber.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (isFormatting) return;
+                isFormatting = true;
+
+                String digits = s.toString().replaceAll("[^\\d]", "");
+                if (digits.length() > 16) digits = digits.substring(0, 16);
+
+                // Formatear con espacios cada 4 dígitos
+                StringBuilder formatted = new StringBuilder();
+                for (int i = 0; i < digits.length(); i++) {
+                    if (i > 0 && i % 4 == 0) formatted.append(" ");
+                    formatted.append(digits.charAt(i));
+                }
+
+                // Actualizar vista previa
+                updateCardPreview(digits);
+
+                // Actualizar campo
+                etCardNumber.removeTextChangedListener(this);
+                etCardNumber.setText(formatted.toString());
+                etCardNumber.setSelection(formatted.length());
+                etCardNumber.addTextChangedListener(this);
+
+                isFormatting = false;
+            }
+        });
+
+        // Listener para nombre del titular
+        etCardHolder.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                cardHolderPreview.setText(s.toString().isEmpty() ? "NOMBRE DEL TITULAR" : s.toString().toUpperCase());
+            }
+        });
+
+        // Listener para fecha de expiración (MEJORADO)
+        etExpiryDate.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (isFormatting) return;
+                isFormatting = true;
+
+                String digits = s.toString().replaceAll("[^\\d]", "");
+                if (digits.length() > 4) digits = digits.substring(0, 4);
+
+                // Formatear para campo de entrada (MM/AA)
+                String formatted = digits;
+                if (digits.length() >= 2) {
+                    formatted = digits.substring(0, 2) + "/" + (digits.length() > 2 ? digits.substring(2) : "");
+                }
+
+                // Actualizar vista previa (siempre con slash)
+                String previewText = formatted;
+                if (digits.length() < 2) {
+                    previewText = digits + "/AA".substring(digits.length());
+                } else if (digits.length() < 4) {
+                    previewText = digits.substring(0, 2) + "/" + (digits.length() > 2 ? digits.substring(2) : "AA");
+                }
+                cardExpiryPreview.setText(previewText.length() < 5 ? "MM/AA" : previewText);
+
+                // Actualizar campo de entrada
+                etExpiryDate.removeTextChangedListener(this);
+                etExpiryDate.setText(formatted);
+                etExpiryDate.setSelection(Math.min(formatted.length(), digits.length() + (digits.length() > 2 ? 1 : 0)));
+                etExpiryDate.addTextChangedListener(this);
+
+                isFormatting = false;
+            }
+        });
+
+        // Listener para CVV
+        etCvv.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (s.length() > 4) {
+                    s.delete(4, s.length());
+                }
+            }
+        });
+    }
+
+    private void updateCardPreview(String digits) {
+        StringBuilder preview = new StringBuilder();
+        for (int i = 0; i < 16; i++) {
+            if (i > 0 && i % 4 == 0) preview.append(" ");
+            preview.append(i < digits.length() ? digits.charAt(i) : '•');
+        }
+        cardNumberPreview.setText(preview.toString());
+    }
+
     private void setupButtons() {
-        binding.btnConfirmPayment.setOnClickListener(v -> {
+        btnConfirmPayment.setOnClickListener(v -> {
             if (validateCardDetails()) {
                 processVisaPayment();
             }
         });
 
-        binding.btnBackToOptions.setOnClickListener(v -> finish());
+        btnBackToOptions.setOnClickListener(v -> finish());
     }
 
     private boolean validateCardDetails() {
-        String cardNumber = binding.etCardNumber.getText().toString().replace(" ", "");
-        String cardHolder = binding.etCardHolder.getText().toString();
-        String expiryDate = binding.etExpiryDate.getText().toString();
-        String cvv = binding.etCvv.getText().toString();
+        String cardNumber = etCardNumber.getText().toString().replace(" ", "");
+        String cardHolder = etCardHolder.getText().toString();
+        String expiryDate = etExpiryDate.getText().toString();
+        String cvv = etCvv.getText().toString();
 
         if (cardNumber.length() != 16) {
-            binding.etCardNumber.setError("Número de tarjeta inválido");
+            etCardNumber.setError("Se requieren 16 dígitos");
             return false;
         }
 
         if (cardHolder.isEmpty()) {
-            binding.etCardHolder.setError("Ingrese el nombre del titular");
+            etCardHolder.setError("Ingrese el nombre del titular");
             return false;
         }
 
         if (!expiryDate.matches("^(0[1-9]|1[0-2])/?([0-9]{2})$")) {
-            binding.etExpiryDate.setError("Formato MM/AA inválido");
+            etExpiryDate.setError("Formato MM/AA inválido");
             return false;
         }
 
         if (cvv.length() < 3 || cvv.length() > 4) {
-            binding.etCvv.setError("CVV inválido");
+            etCvv.setError("CVV inválido (3-4 dígitos)");
             return false;
         }
 
         return true;
     }
 
-    private void setupCardPreview() {
-        // Listener para número de tarjeta
-        binding.etCardNumber.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (isFormattingCardNumber) return;
-
-                isFormattingCardNumber = true;
-
-                // Formatear número de tarjeta
-                String digits = s.toString().replaceAll("[^\\d]", "");
-                StringBuilder formatted = new StringBuilder();
-
-                for (int i = 0; i < digits.length(); i++) {
-                    if (i > 0 && i % 4 == 0) {
-                        formatted.append(" ");
-                    }
-                    formatted.append(digits.charAt(i));
-                }
-
-                // Actualizar campo de entrada
-                binding.etCardNumber.removeTextChangedListener(this);
-                binding.etCardNumber.setText(formatted.toString());
-                binding.etCardNumber.setSelection(formatted.length());
-                binding.etCardNumber.addTextChangedListener(this);
-
-                // Actualizar vista previa
-                if (digits.isEmpty()) {
-                    binding.cardNumber.setText("1234 5678 9012 3456");
-                } else {
-                    binding.cardNumber.setText(formatted.toString());
-                }
-
-                isFormattingCardNumber = false;
-            }
-        });
-
-        // Listener para nombre del titular
-        binding.etCardHolder.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                String cardHolder = s.toString();
-                if (cardHolder.isEmpty()) {
-                    binding.cardHolder.setText("NOMBRE DEL TITULAR");
-                } else {
-                    binding.cardHolder.setText(cardHolder.toUpperCase());
-                }
-            }
-        });
-
-        // Listener para fecha de expiración
-        binding.etExpiryDate.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                String expiryDate = s.toString();
-                if (expiryDate.isEmpty()) {
-                    binding.cardExpiry.setText("MM/AA");
-                } else {
-                    binding.cardExpiry.setText(expiryDate);
-                }
-            }
-        });
-
-        // Listener para CVV (opcional)
-        binding.etCvv.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                String cvv = s.toString();
-                if (cvv.isEmpty()) {
-                    binding.cardCvv.setText("•••");
-                } else {
-                    binding.cardCvv.setText("•".repeat(cvv.length()));
-                }
-            }
-        });
-    }
-
-    private void setupFieldFormatters() {
-        // Formateador para fecha de expiración
-        binding.etExpiryDate.addTextChangedListener(new TextWatcher() {
-            private static final int MAX_LENGTH = 5; // MM/AA
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (s.length() > 0 && (s.length() % 3) == 0) {
-                    char c = s.charAt(s.length() - 1);
-                    if ('/' == c) {
-                        s.delete(s.length() - 1, s.length());
-                    } else if (Character.isDigit(c) && s.length() == 2) {
-                        s.insert(2, "/");
-                    }
-                }
-
-                if (s.length() > MAX_LENGTH) {
-                    s.delete(MAX_LENGTH, s.length());
-                }
-            }
-        });
-
-        // Formateador para CVV
-        binding.etCvv.addTextChangedListener(new TextWatcher() {
-            private static final int MAX_LENGTH = 4;
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (s.length() > MAX_LENGTH) {
-                    s.delete(MAX_LENGTH, s.length());
-                }
-            }
-        });
-    }
-
     private void processVisaPayment() {
-        String cardNumber = binding.etCardNumber.getText().toString().replace(" ", "");
-        String cardHolder = binding.etCardHolder.getText().toString();
-        String expiryDate = binding.etExpiryDate.getText().toString();
-        String cvv = binding.etCvv.getText().toString();
+        String cardNumber = etCardNumber.getText().toString().replace(" ", "");
+        String cardHolder = etCardHolder.getText().toString();
+        String expiryDate = etExpiryDate.getText().toString();
+        String cvv = etCvv.getText().toString();
 
+        // Obtener ID de usuario
+        if (userId == null && auth.getCurrentUser() != null) {
+            userId = auth.getCurrentUser().getUid();
+        }
+
+        // Crear datos del pago
         Map<String, Object> paymentData = new HashMap<>();
         paymentData.put("amount", 150.00);
         paymentData.put("date", System.currentTimeMillis());
@@ -236,12 +228,17 @@ public class UserPaymentActivity extends AppCompatActivity {
         paymentData.put("card_last_four", cardNumber.substring(cardNumber.length() - 4));
         paymentData.put("status", "completed");
         paymentData.put("exam_id", examId);
+        paymentData.put("user_id", userId);
 
-        db.collection("payments")
-                .add(paymentData)
-                .addOnSuccessListener(documentReference -> {
-                    updateUserPaymentStatus(documentReference.getId());
-                    Toast.makeText(this, "Pago procesado: •••• " + cardNumber.substring(cardNumber.length() - 4), Toast.LENGTH_LONG).show();
+        // Generar ID único para el pago
+        String paymentId = database.child("payments").push().getKey();
+
+        // Guardar en Realtime Database
+        database.child("payments").child(paymentId)
+                .setValue(paymentData)
+                .addOnSuccessListener(aVoid -> {
+                    updateUserPaymentStatus();
+                    Toast.makeText(this, "Pago procesado exitosamente", Toast.LENGTH_LONG).show();
                     finish();
                 })
                 .addOnFailureListener(e -> {
@@ -249,22 +246,15 @@ public class UserPaymentActivity extends AppCompatActivity {
                 });
     }
 
-    private void updateUserPaymentStatus(String paymentId) {
-        String userEmail = auth.getCurrentUser() != null ? auth.getCurrentUser().getEmail() : null;
-        if (userEmail == null) return;
+    private void updateUserPaymentStatus() {
+        if (userId != null) {
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("paymentStatus", true);
+            updates.put("paymentMethod", "visa");
+            updates.put("lastPaymentDate", System.currentTimeMillis());
 
-        String userDni = userEmail.split("@")[0];
-
-        Map<String, Object> paymentStatus = new HashMap<>();
-        paymentStatus.put("payment_id", paymentId);
-        paymentStatus.put("exam_id", examId);
-        paymentStatus.put("status", "paid");
-        paymentStatus.put("payment_date", System.currentTimeMillis());
-
-        db.collection("users")
-                .document(userDni)
-                .collection("payment_status")
-                .document(examId)
-                .set(paymentStatus);
+            database.child("users").child(userId)
+                    .updateChildren(updates);
+        }
     }
 }

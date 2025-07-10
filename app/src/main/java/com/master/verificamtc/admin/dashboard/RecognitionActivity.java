@@ -58,7 +58,7 @@ public class RecognitionActivity extends AppCompatActivity {
     ImageView imageView;
     Uri image_uri;
     public static final int PERMISSION_CODE = 100;
-
+    private String dniDelUsuario;
 
     //TODO declare face detector
     // High-accuracy landmark detection and face classification
@@ -123,6 +123,17 @@ public class RecognitionActivity extends AppCompatActivity {
         galleryCard = findViewById(R.id.gallerycard);
         cameraCard = findViewById(R.id.cameracard);
         imageView = findViewById(R.id.imageView2);
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra("DNI_USUARIO")) {
+            dniDelUsuario = intent.getStringExtra("DNI_USUARIO");
+        } else {
+            // Manejar el caso donde el DNI no se pasó correctamente
+            // Podrías mostrar un error y cerrar la actividad, o usar un valor por defecto
+            Log.e("RecognitionActivity", "DNI_USUARIO no encontrado en el Intent.");
+            Toast.makeText(this, "Error: DNI no proporcionado.", Toast.LENGTH_LONG).show();
+            finish(); // Cierra la actividad si el DNI es esencial
+            return; // Evita continuar si el DNI no está presente
+        }
 
         //TODO code for choosing images from gallery
         galleryCard.setOnClickListener(new View.OnClickListener() {
@@ -235,7 +246,7 @@ public class RecognitionActivity extends AppCompatActivity {
 
 
     //TODO perform face recognition
-    public void performFaceRecognition(Rect bound,Bitmap input){
+    public void performFaceRecognition(Rect bound, Bitmap input) {
         if(bound.top<0){
             bound.top=0;
         }
@@ -248,18 +259,42 @@ public class RecognitionActivity extends AppCompatActivity {
         if (bound.bottom>input.getHeight()){
             bound.bottom=input.getHeight()-1;
         }
-        Bitmap croppedFace = Bitmap.createBitmap(input,bound.left,bound.top,bound.width(),bound.height());
-        //imageView.setImageBitmap(croppedFace);
-        croppedFace = Bitmap.createScaledBitmap(croppedFace,160,160,false);
-        FaceClassifier.Recognition recognition = faceClassifier.recognizeImage(croppedFace,false);
-        if(recognition != null){
-            Log.d("tryFR", recognition.getTitle()+"    "+recognition.getDistance());
-            if(recognition.getDistance()<1){
+        Bitmap croppedFace = Bitmap.createBitmap(input, bound.left, bound.top, bound.width(), bound.height());
+        croppedFace = Bitmap.createScaledBitmap(croppedFace, 160, 160, false);
+        FaceClassifier.Recognition recognition = faceClassifier.recognizeImage(croppedFace, false);
+
+        if (recognition != null) {
+            Log.d("tryFR", recognition.getTitle() + "    " + recognition.getDistance());
+
+            // Validar la distancia Y que el título coincida con el DNI
+            if (recognition.getDistance() < 1 && dniDelUsuario != null && dniDelUsuario.equals(recognition.getTitle())) {
                 Paint p1 = new Paint();
                 p1.setColor(Color.WHITE);
                 p1.setTextSize(30);
-                canvas.drawText(recognition.getTitle(),bound.left,bound.top,p1);
+                canvas.drawText(recognition.getTitle(), bound.left, bound.top, p1);
+
+                // Si el reconocimiento fue exitoso Y el DNI coincide, regresamos a AuthRegisterActivity
+                Intent returnIntent = new Intent();
+                // Opcionalmente, puedes pasar algún dato de vuelta si es necesario
+                // returnIntent.putExtra("RECONOCIMIENTO_EXITOSO", true);
+                setResult(RESULT_OK, returnIntent);
+                finish(); // Cierra RecognitionActivity y regresa a AuthRegisterActivity
+            } else {
+                // El reconocimiento falló (distancia muy alta o DNI no coincide)
+                String mensajeError;
+                if (recognition.getDistance() >= 1) {
+                    mensajeError = "No se pudo reconocer el rostro. Intente con otra foto.";
+                } else {
+                    mensajeError = "El rostro no coincide con el DNI registrado. Intente con otra foto.";
+                }
+                Log.d("tryFR", "Error de reconocimiento: " + mensajeError);
+                Toast.makeText(this, mensajeError, Toast.LENGTH_LONG).show();
+
             }
+        } else {
+            // No se detectó ningún rostro o hubo un error en el reconocimiento
+            Toast.makeText(this, "No se pudo procesar el rostro. Intente con otra foto.", Toast.LENGTH_LONG).show();
+            // imageView.setImageBitmap(null); // Opcional
         }
     }
 

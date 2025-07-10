@@ -60,12 +60,11 @@
 
                 <ImageView
                     android:id="@+id/identity_validation_status"
-                    android:layout_width="0dp"
+                    android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
                     android:visibility="gone"
-                    android:contentDescription="Estado de validación" />
+                    android:src="@drawable/ic_check_green" />
             </LinearLayout>
 
             <EditText
@@ -126,10 +125,11 @@
                 android:id="@+id/register_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Registrarse"
-                android:backgroundTint="@color/red"
                 android:layout_marginTop="24dp"
-                tools:ignore="VisualLintButtonSize" />
+                android:backgroundTint="@color/red"
+                android:minHeight="48dp"
+                android:text="Registrarse"
+                tools:ignore="VisualLintButtonSize,TouchTargetSizeCheck" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </LinearLayout>

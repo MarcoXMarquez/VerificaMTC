@@ -39,6 +39,7 @@ public class AuthRegisterActivity extends AppCompatActivity {
         reDate = findViewById(R.id.register_birthdate);
         reRegisterButton = findViewById(R.id.register_button);
         Button btnValidateIdentity = findViewById(R.id.btn_validate_identity);
+        validationStatus = findViewById(R.id.identity_validation_status);
 
         // Configurar listeners
         setupDatePicker();
@@ -71,8 +72,16 @@ public class AuthRegisterActivity extends AppCompatActivity {
     }
 
     private void setupIdentityValidationButton(Button btnValidateIdentity) {
-        // En AuthRegisterActivity.java
         btnValidateIdentity.setOnClickListener(v -> {
+            String dniUsuario = reDni.getText().toString().trim();
+
+            if (dniUsuario.isEmpty()) {
+                Toast.makeText(this, "Por favor ingrese su DNI antes de validar identidad", Toast.LENGTH_SHORT).show();
+                reDni.setError("DNI requerido");
+                reDni.requestFocus();
+                return;
+            }
+
             Toast.makeText(this, "Sincronizando rostros...", Toast.LENGTH_SHORT).show();
 
             dbHelper.getAllFaces(new FirebaseDatabaseHelper.SyncCompletionListener() {
@@ -80,9 +89,9 @@ public class AuthRegisterActivity extends AppCompatActivity {
                 public void onSyncComplete(boolean success) {
                     runOnUiThread(() -> {
                         if (success) {
-                            // Ahora los datos están en SQLite local
                             Intent intent = new Intent(AuthRegisterActivity.this, RecognitionActivity.class);
-                            startActivity(intent);
+                            intent.putExtra("DNI_USUARIO", dniUsuario);
+                            startActivityForResult(intent, 1); // Usamos startActivityForResult
                         } else {
                             Toast.makeText(AuthRegisterActivity.this,
                                     "Error al sincronizar rostros", Toast.LENGTH_SHORT).show();
@@ -92,8 +101,22 @@ public class AuthRegisterActivity extends AppCompatActivity {
             });
         });
     }
-
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1 && resultCode == RESULT_OK) { // 1 es un código arbitrario para identificar la actividad
+            isIdentityValidated = true;
+            validationStatus.setImageResource(R.drawable.ic_check_green); // Asegúrate de tener este drawable
+            validationStatus.setVisibility(View.VISIBLE);
+        }
+    }
     private void addUser() {
+        // Primero verificar si la identidad está validada
+        if (!isIdentityValidated) {
+            Toast.makeText(this, "Por favor valide su identidad antes de registrarse", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String userId = reDni.getText().toString().trim();
         String firstName = reNames.getText().toString().trim();
         String lastName = reLastNames.getText().toString().trim();

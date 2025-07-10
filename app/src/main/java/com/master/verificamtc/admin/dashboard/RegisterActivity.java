@@ -125,6 +125,8 @@ public class RegisterActivity extends AppCompatActivity {
         galleryCard = findViewById(R.id.gallerycard);
         cameraCard = findViewById(R.id.cameracard);
         imageView = findViewById(R.id.imageView2);
+        String userDni = getIntent().getStringExtra("USER_DNI");
+
 
         //TODO code for choosing images from gallery
         galleryCard.setOnClickListener(new View.OnClickListener() {
@@ -255,23 +257,36 @@ public class RegisterActivity extends AppCompatActivity {
         FaceClassifier.Recognition recognition = faceClassifier.recognizeImage(croppedFace,true);
         showRegisterDialogue(croppedFace,recognition);
     }
-    public void showRegisterDialogue(Bitmap face, FaceClassifier.Recognition recognition){
+    // En RegisterActivity.java, modifica el método showRegisterDialogue:
+    public void showRegisterDialogue(Bitmap face, FaceClassifier.Recognition recognition) {
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.register_face_dialogue);
         ImageView imageView1 = dialog.findViewById(R.id.dlg_image);
         EditText editText = dialog.findViewById(R.id.dlg_input);
         Button register = dialog.findViewById(R.id.button2);
+
+        // Obtener el DNI del intent
+        String userDni = getIntent().getStringExtra("USER_DNI");
+
+        // Establecer el DNI como texto predeterminado
+        editText.setText(userDni);
+
         imageView1.setImageBitmap(face);
         register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(editText.getText().toString().equals("")){
-                    editText.setError("Enter Name");
-                }
-                else{
-                    faceClassifier.register(editText.getText().toString(),recognition);
-                    Toast.makeText(RegisterActivity.this,"Registered", Toast.LENGTH_SHORT).show();
-                }
+                // Usar el DNI como nombre si el campo está vacío
+                String nameToRegister = editText.getText().toString().isEmpty() ?
+                        userDni : editText.getText().toString();
+
+                faceClassifier.register(nameToRegister, recognition);
+                Toast.makeText(RegisterActivity.this, "Rostro registrado", Toast.LENGTH_SHORT).show();
+
+                // Cerrar el diálogo
+                dialog.dismiss();
+
+                // Cerrar la actividad y volver al AdminDashboard
+                finish();
             }
         });
         dialog.show();
