@@ -85,4 +85,7 @@ dependencies {
     testImplementation(libs.junit) // Pruebas unitarias
     androidTestImplementation(libs.ext.junit) // Pruebas Android
     androidTestImplementation(libs.espresso.core) // Pruebas UI
+
+    //Circuito Imagen
+    implementation("com.github.chrisbanes:PhotoView:2.3.0")
 }

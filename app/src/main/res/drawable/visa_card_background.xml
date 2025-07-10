@@ -4,8 +4,7 @@
             <corners android:radius="8dp"/>
             <gradient
                 android:angle="45"
-                android:startColor="@color/visa_blue_dark"
-                android:endColor="@color/visa_blue_light"/>
+                />
         </shape>
     </item>
     <item android:top="20dp" android:right="20dp">

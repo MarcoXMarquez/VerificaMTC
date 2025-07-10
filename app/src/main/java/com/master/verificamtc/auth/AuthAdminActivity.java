@@ -6,13 +6,14 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
+
 import com.master.verificamtc.R;
 import com.master.verificamtc.admin.dashboard.AdminDashboardActivity;
 import android.widget.EditText;
 import android.os.Handler;
 
 public class AuthAdminActivity extends AppCompatActivity {
+    /*
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private int loginAttempts = 0;
@@ -80,4 +81,5 @@ public class AuthAdminActivity extends AppCompatActivity {
             loginAttempts = 0;
         }, 300000); // 5 minutos
     }
+     */
 }

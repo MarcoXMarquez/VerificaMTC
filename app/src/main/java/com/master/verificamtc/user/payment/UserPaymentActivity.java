@@ -6,12 +6,12 @@ import android.text.TextWatcher;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.master.verificamtc.databinding.FormVisaPaymentBinding;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class UserPaymentActivity extends AppCompatActivity {
+    /*
 
     private FormVisaPaymentBinding binding;
     private boolean isFormattingCardNumber = false;
@@ -267,4 +267,6 @@ public class UserPaymentActivity extends AppCompatActivity {
                 .document(examId)
                 .set(paymentStatus);
     }
+
+     */
 }

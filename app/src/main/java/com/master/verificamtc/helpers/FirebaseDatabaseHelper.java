@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
@@ -11,6 +12,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
     private DatabaseReference database;
@@ -20,17 +24,21 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_FACES = "faces";
     public static final String COLUMN_USER_ID = "user_id";
     public static final String COLUMN_EMBEDDING = "embedding";
+
     public FirebaseDatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.context = context;
         database = FirebaseDatabase.getInstance().getReference();
     }
+
     public SQLiteDatabase getLocalDatabase() {
         return this.getReadableDatabase();
     }
+
     public interface SyncCompletionListener {
         void onSyncComplete(boolean success);
     }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_FACES_TABLE = "CREATE TABLE " + TABLE_FACES + "("
@@ -46,11 +54,11 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
     }
 
     public static class User {
-        public String dni; // Cambiamos userId por dni
+        public String dni;
         public String firstName, lastName, birthDate, email, password;
         public boolean paymentStatus, writtenExamPassed, drivingExamPassed;
 
-        public User() {} // Constructor vacío requerido por Firebase
+        public User() {}
 
         public User(String dni, String firstName, String lastName,
                     String birthDate, String email, String password) {
@@ -65,16 +73,14 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
             this.drivingExamPassed = false;
         }
     }
+
     public static class Car {
         public String vehicleId, userId, color, plate, brand, model;
         public int year;
         public boolean verificationStatus;
 
-        // Constructor vacío requerido por Firebase
-        public Car() {
-        }
+        public Car() {}
 
-        // Constructor completo
         public Car(String vehicleId, String userId, String color, String plate,
                    String brand, String model, int year) {
             this.vehicleId = vehicleId;
@@ -84,18 +90,17 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
             this.brand = brand;
             this.model = model;
             this.year = year;
-            this.verificationStatus = false; // Por defecto no verificado
+            this.verificationStatus = false;
         }
     }
-    public static class ProcessStatus{
+
+    public static class ProcessStatus {
         public String statusId, userId;
         public boolean vehicleCompleted, paymentCompleted, writtenExamPassed, drivingExamPassed;
         public long lastUpdated;
 
-        // Constructor vacío requerido por Firebase
         public ProcessStatus() {}
 
-        // Constructor para nuevo estado
         public ProcessStatus(String userId) {
             this.statusId = FirebaseDatabase.getInstance().getReference()
                     .child("process_status").push().getKey();
@@ -106,24 +111,133 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
             this.drivingExamPassed = false;
             this.lastUpdated = System.currentTimeMillis();
         }
-
     }
 
-    // Metodo para añadir un usuario
+    // ====== NUEVAS ADICIONES ======
+    public static class Question {
+        public String id;
+        public String text;
+        public String zoneType;
+
+        public Question() {}
+
+        public Question(String id, String text, String zoneType) {
+            this.id = id;
+            this.text = text;
+            this.zoneType = zoneType;
+        }
+    }
+
+    public static class Answer {
+        public String userId;
+        public String questionId;
+        public int rating;
+        public long timestamp;
+
+        public Answer() {}
+
+        public Answer(String userId, String questionId, int rating) {
+            this.userId = userId;
+            this.questionId = questionId;
+            this.rating = rating;
+            this.timestamp = System.currentTimeMillis();
+        }
+    }
+
+    public void getQuestions(String zoneType, ValueEventListener listener) {
+        database.child("questions").child(zoneType)
+                .addListenerForSingleValueEvent(listener);
+    }
+
+    // Versión actualizada para guardar respuestas como objetos Answer
+    public void saveAnswers(String userId, String zoneType, Map<String, Object> answers) {
+        // Primero validamos los datos
+        if (userId == null || zoneType == null || answers == null) {
+            Log.e("Firebase", "Datos inválidos para guardar respuestas");
+            return;
+        }
+
+        // Creamos un mapa con la estructura correcta
+        Map<String, Object> answerData = new HashMap<>();
+
+        for (Map.Entry<String, Object> entry : answers.entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith("q")) { // q1, q2, q3
+                Object value = entry.getValue();
+
+                // Creamos un objeto Answer para cada respuesta
+                Map<String, Object> answer = new HashMap<>();
+                answer.put("rating", value);
+                answer.put("timestamp", System.currentTimeMillis());
+
+                answerData.put(key, answer);
+            }
+        }
+
+        // Añadimos timestamp general
+        answerData.put("timestamp", System.currentTimeMillis());
+
+        // Guardamos en Firebase
+        database.child("answers")
+                .child(userId)
+                .child(zoneType)
+                .setValue(answerData)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Firebase", "Respuestas guardadas correctamente");
+                    // Verifica en la consola de Firebase que los datos se actualizaron
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firebase", "Error al guardar respuestas", e);
+                });
+    }
+
+
+    public void getAnswers(String userId, String zoneType, ValueEventListener listener) {
+        database.child("answers").child(userId).child(zoneType)
+                .addListenerForSingleValueEvent(listener);
+    }
+
+    // Versión compatible con tu estructura actual de Firebase (strings directos)
+    public void initializeDefaultQuestions() {
+        Map<String, Object> questions = new HashMap<>();
+
+        // Preguntas para curva (strings directos)
+        Map<String, Object> curveQuestions = new HashMap<>();
+        curveQuestions.put("q1", "¿Redujo la velocidad al ingresar a la curva?");
+        curveQuestions.put("q2", "¿Mantuvo el control del vehículo durante la curva?");
+        curveQuestions.put("q3", "¿Usó adecuadamente los espejos y señalización?");
+
+        // Preguntas para estacionamiento (strings directos)
+        Map<String, Object> parkingQuestions = new HashMap<>();
+        parkingQuestions.put("q1", "¿Respetó la señalización?");
+        parkingQuestions.put("q2", "¿Cedió el paso correctamente?");
+        parkingQuestions.put("q3", "¿Mantiene distancia de seguridad?");
+
+        questions.put("curve", curveQuestions);
+        questions.put("parking", parkingQuestions);
+
+        database.child("questions").setValue(questions)
+                .addOnSuccessListener(aVoid ->
+                        Log.d("Firebase", "Preguntas (strings) inicializadas"))
+                .addOnFailureListener(e ->
+                        Log.e("Firebase", "Error al inicializar preguntas", e));
+    }
+    public DatabaseReference getDatabaseReference() {
+        return this.database;
+    }
+
+    // ====== FIN DE NUEVAS ADICIONES ======
 
     public void addUser(String dni, String firstName, String lastName,
                         String birthDate, String email, String hashedPassword) {
-        // Verificar que el DNI tenga 8 dígitos
         if (!dni.matches("\\d{8}")) {
             throw new IllegalArgumentException("DNI debe tener 8 dígitos");
         }
 
-        // Verificación adicional del hash
         if (!hashedPassword.startsWith("$2a$")) {
             throw new SecurityException("Formato de hash inválido");
         }
 
-        // Usamos el DNI como ID principal
         User newUser = new User(dni, firstName, lastName, birthDate, email, hashedPassword);
 
         database.child("users").child(dni).setValue(newUser)
@@ -133,11 +247,14 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
                 .addOnFailureListener(e -> {
                     Toast.makeText(context, "Error en registro: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
+
     }
-    public void addEmbedding(String userId, String embedding ){
+
+    public void addEmbedding(String userId, String embedding) {
         database.child("embeddings").child(userId).setValue(embedding);
     }
-    public void getAllFaces( SyncCompletionListener listener) {
+
+    public void getAllFaces(SyncCompletionListener listener) {
         DatabaseReference embeddingsRef = database.child("embeddings");
 
         embeddingsRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -148,7 +265,7 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
 
                 try {
                     db.beginTransaction();
-                    db.delete(TABLE_FACES, null, null); // Limpiar tabla existente
+                    db.delete(TABLE_FACES, null, null);
 
                     for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                         String userId = userSnapshot.getKey();
@@ -170,7 +287,6 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
                     db.endTransaction();
                     db.close();
 
-                    // Notificar que la sincronización ha terminado
                     if (listener != null) {
                         listener.onSyncComplete(success);
                     }
@@ -185,14 +301,13 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
             }
         });
     }
+
     public void getAllUsers(ValueEventListener listener) {
         database.child("users").addValueEventListener(listener);
     }
+
     public void updatePaymentStatus(String userId, boolean isPaid) {
-        database.child("users").child(userId).
-                child("paymentStatus").setValue(isPaid);
+        database.child("users").child(userId)
+                .child("paymentStatus").setValue(isPaid);
     }
-
-    // Clase modelo para User
-
 }

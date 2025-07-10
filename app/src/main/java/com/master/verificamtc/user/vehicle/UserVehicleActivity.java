@@ -4,12 +4,13 @@ import android.os.Bundle;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.firestore.FirebaseFirestore;
+
 import com.master.verificamtc.R;
 import java.util.HashMap;
 import java.util.Map;
 
 public class UserVehicleActivity extends AppCompatActivity {
+    /*
     private TextInputEditText etPlate, etColor, etBrand, etModel, etYear;
     private FirebaseFirestore db;
 
@@ -82,4 +83,5 @@ public class UserVehicleActivity extends AppCompatActivity {
             Toast.makeText(this, "El año debe ser un número válido", Toast.LENGTH_SHORT).show();
         }
     }
+     */
 }

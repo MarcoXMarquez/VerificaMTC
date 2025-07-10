@@ -67,6 +67,10 @@
         <activity
             android:name=".admin.dashboard.RecognitionActivity"
             android:exported="true" />
+        <activity
+            android:name=".user.circuit.UserCircuitActivity"
+            android:exported="true"/>
+
 
         <!-- make sure within the application tag, otherwise app will crash with XmlResourceParser errors -->
         <provider

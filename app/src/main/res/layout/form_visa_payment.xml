@@ -5,14 +5,14 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@color/background">
+    >
 
     <!-- Vista previa de la tarjeta Visa -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:layout_marginBottom="24dp"
-        app:cardBackgroundColor="@color/card_background"
+
         app:cardCornerRadius="12dp"
         app:cardElevation="8dp">
 
