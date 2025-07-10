@@ -1,8 +1,11 @@
 package com.master.verificamtc.admin.dashboard;
 
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -16,12 +19,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.master.verificamtc.R;
 import com.master.verificamtc.models.User;
 
-import java.util.ArrayList;
-
 public class PaymentsListActivity extends AppCompatActivity {
-    private ListView paymentsListView;
-    private ArrayList<String> paymentsList;
-    private ArrayAdapter<String> adapter;
+    private LinearLayout paymentsContainer;
     private DatabaseReference usersRef;
 
     @Override
@@ -29,19 +28,9 @@ public class PaymentsListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payments_list);
 
-        paymentsListView = findViewById(R.id.paymentsListView);
-        paymentsList = new ArrayList<>();
-        adapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_list_item_1,
-                paymentsList
-        );
-        paymentsListView.setAdapter(adapter);
+        paymentsContainer = findViewById(R.id.paymentsContainer);
 
-        // Vamos a leer /users en vez de /payments
-        usersRef = FirebaseDatabase.getInstance()
-                .getReference("users");
-
+        usersRef = FirebaseDatabase.getInstance().getReference("users");
         loadPaymentStatuses();
     }
 
@@ -49,25 +38,38 @@ public class PaymentsListActivity extends AppCompatActivity {
         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snap) {
-                paymentsList.clear();
+                paymentsContainer.removeAllViews();
                 if (!snap.exists()) {
                     Toast.makeText(PaymentsListActivity.this,
                             "No hay usuarios registrados", Toast.LENGTH_SHORT).show();
                 } else {
+                    LayoutInflater inflater = LayoutInflater.from(PaymentsListActivity.this);
                     for (DataSnapshot child : snap.getChildren()) {
                         User u = child.getValue(User.class);
                         if (u != null) {
-                            String estadoPago = u.paymentStatus ? "Realizado" : "Pendiente";
-                            String entry = "Usuario: "  + u.firstName + " " + u.lastName
-                                    + "\nDNI: "      + u.dni
-                                    + "\nPago: "     + estadoPago;
-                            paymentsList.add(entry);
+                            View item = inflater.inflate(R.layout.item_payment, paymentsContainer, false);
+
+                            TextView tvUser = item.findViewById(R.id.tvPaymentUser);
+                            TextView tvDni = item.findViewById(R.id.tvPaymentDni);
+                            TextView tvStatus = item.findViewById(R.id.tvPaymentStatus);
+                            ImageView ivIcon = item.findViewById(R.id.ivPaymentIcon);
+
+                            tvUser.setText(u.firstName + " " + u.lastName);
+                            tvDni.setText("DNI: " + u.dni);
+                            boolean paid = u.paymentStatus;
+                            tvStatus.setText(paid ? "Pago realizado" : "Pago pendiente");
+                            tvStatus.setTextColor(getResources().getColor(
+                                    paid ? R.color.success_green : R.color.warning_orange
+                            ));
+                            ivIcon.setImageResource(
+                                    paid ? R.drawable.user_payment_2 : R.drawable.user_payment_1
+                            );
+
+                            paymentsContainer.addView(item);
                         }
                     }
                 }
-                adapter.notifyDataSetChanged();
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(PaymentsListActivity.this,

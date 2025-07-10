@@ -2,6 +2,7 @@ package com.master.verificamtc.admin.dashboard;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -9,9 +10,12 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import android.content.res.ColorStateList;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -48,32 +52,69 @@ public class AdminDashboardActivity extends AppCompatActivity {
                             .inflate(R.layout.item_user_simple, parent, false);
                 }
 
-                TextView tvName   = convertView.findViewById(R.id.tvUserName);
-                Button   btnToggle = convertView.findViewById(R.id.btnTogglePay);
+                ImageView ivIcon   = convertView.findViewById(R.id.ivUserIcon);
+                TextView  tvName   = convertView.findViewById(R.id.tvUserName);
+                Button    btnToggle= convertView.findViewById(R.id.btnTogglePay);
 
-                Map<String, Object> item = getItem(position);
-                String dni   = (String) item.get("dni");
-                String name  = (String) item.get("name");
-                Boolean paid = (Boolean) item.get("paymentStatus");
+                Map<String,Object> item = getItem(position);
+                String dni            = (String) item.get("dni");
+                String name           = (String) item.get("name");
+                Boolean paymentStatus = (Boolean) item.get("paymentStatus");
 
                 tvName.setText(name);
-                btnToggle.setText(paid ? "Desmarcar Pago" : "Marcar Pago");
+                // Cambia el icono según el estado
+                ivIcon.setImageResource(
+                        paymentStatus
+                                ? R.drawable.user_payment_2   // pagó
+                                : R.drawable.user_payment_1    // no pagó
+                );
+                btnToggle.setText(paymentStatus ? "Desmarcar Pago" : "Marcar Pago");
+
+                // Cambia color del botón según el estado
+                int orange = ContextCompat.getColor(getContext(), R.color.button_orange); // En colors.xml
+                int aqua   = ContextCompat.getColor(getContext(), R.color.button_aqua);   // En colors.xml
+                btnToggle.setBackgroundTintList(ColorStateList.valueOf(
+                        paymentStatus ? aqua : orange
+                ));
+
+                // Animación al tocar el botón
+                btnToggle.setOnTouchListener((v, event) -> {
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100).start();
+                            break;
+                        case MotionEvent.ACTION_UP:
+                        case MotionEvent.ACTION_CANCEL:
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+                            break;
+                    }
+                    return false;
+                });
 
                 btnToggle.setOnClickListener(v -> {
+                    boolean current = (Boolean) item.get("paymentStatus");
+                    boolean newStatus = !current;
                     DatabaseReference stRef = FirebaseDatabase.getInstance()
                             .getReference("users")
                             .child(dni)
                             .child("paymentStatus");
 
-                    stRef.setValue(!paid)
+                    stRef.setValue(newStatus)
                             .addOnSuccessListener(a -> {
-                                Toast.makeText(getContext(), "Pago actualizado", Toast.LENGTH_SHORT).show();
-                                // Update local model and refresh list
-                                item.put("paymentStatus", !paid);
-                                notifyDataSetChanged();
+                                item.put("paymentStatus", newStatus);
+                                ivIcon.setImageResource(
+                                        newStatus ? R.drawable.user_payment_2 : R.drawable.user_payment_1
+                                );
+                                btnToggle.setText(newStatus ? "Desmarcar Pago" : "Marcar Pago");
+                                btnToggle.setBackgroundTintList(ColorStateList.valueOf(
+                                        newStatus ? aqua : orange
+                                ));
                             })
                             .addOnFailureListener(e ->
-                                    Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(getContext(),
+                                            "Error: " + e.getMessage(),
+                                            Toast.LENGTH_SHORT
+                                    ).show()
                             );
                 });
 
