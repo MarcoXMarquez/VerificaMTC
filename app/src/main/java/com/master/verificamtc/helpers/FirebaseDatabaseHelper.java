@@ -50,11 +50,13 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
     }
 
     public static class User {
-        public String dni; // Cambiamos userId por dni
+        public String dni;
         public String firstName, lastName, birthDate, email, password;
-        public boolean paymentStatus, writtenExamPassed, drivingExamPassed;
+        public boolean paymentStatus, drivingExamPassed; // Eliminado writtenExamPassed
+        public boolean hasVehicle;
+        public Map<String, Boolean> schedules;
 
-        public User() {} // Constructor vacío requerido por Firebase
+        public User() {}
 
         public User(String dni, String firstName, String lastName,
                     String birthDate, String email, String password) {
@@ -65,8 +67,8 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
             this.email = email;
             this.password = password;
             this.paymentStatus = false;
-            this.writtenExamPassed = false;
-            this.drivingExamPassed = false;
+            this.drivingExamPassed = false; // Solo examen práctico
+            this.hasVehicle = false;
         }
     }
     public static class Car {
@@ -206,15 +208,15 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
         // Normalizar placa para clave de Firebase
         String normalizedPlate = vehicle.plate.replace("-", "_");
 
-        database.child("vehicles").child(normalizedPlate)
+        // Guardar vehículo bajo el nodo del usuario
+        database.child("users").child(vehicle.userId)
+                .child("vehicles").child(normalizedPlate)
                 .setValue(vehicle)
                 .addOnSuccessListener(aVoid -> {
-                    // Actualizar referencia en usuario si existe
-                    if (vehicle.userId != null && !vehicle.userId.isEmpty()) {
-                        database.child("users").child(vehicle.userId)
-                                .child("vehicles").child(normalizedPlate)
-                                .setValue(true);
-                    }
+                    // Actualizar estado de vehículo registrado
+                    database.child("users").child(vehicle.userId)
+                            .child("hasVehicle").setValue(true);
+
                     Toast.makeText(context, "Vehículo registrado exitosamente", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
@@ -338,5 +340,44 @@ public class FirebaseDatabaseHelper extends SQLiteOpenHelper {
                         Log.d("Firebase", "Preguntas (strings) inicializadas"))
                 .addOnFailureListener(e ->
                         Log.e("Firebase", "Error al inicializar preguntas", e));
+    }
+    // En FirebaseDatabaseHelper.java
+    public interface ScheduleCompletionListener {
+        void onSuccess(String scheduleId);
+        void onFailure(String errorMessage);
+    }
+
+    public void addSchedule(String userId, String date, String time, ScheduleCompletionListener listener) {
+        String scheduleId = database.child("schedules").push().getKey();
+
+        if (scheduleId == null) {
+            if (listener != null) {
+                listener.onFailure("No se pudo generar ID de horario");
+            }
+            return;
+        }
+
+        Map<String, Object> scheduleData = new HashMap<>();
+        scheduleData.put("date", date);
+        scheduleData.put("time", time);
+        scheduleData.put("userId", userId);
+
+        database.child("schedules").child(scheduleId)
+                .setValue(scheduleData)
+                .addOnSuccessListener(aVoid -> {
+                    if (listener != null) {
+                        listener.onSuccess(scheduleId);
+
+                        // Opcional: Guardar referencia en el usuario
+                        database.child("users").child(userId)
+                                .child("schedules").child(scheduleId)
+                                .setValue(true);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (listener != null) {
+                        listener.onFailure(e.getMessage());
+                    }
+                });
     }
 }

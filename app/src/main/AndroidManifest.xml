@@ -20,9 +20,8 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:icon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.VerificaMTC"
         tools:targetApi="31">
@@ -55,7 +54,7 @@
             android:name=".user.dashboard.UserDashboardActivity"
             android:exported="true" />
         <activity
-            android:name=".admin.dashboard.FaceDetectionActivity"
+            android:name=".admin.recognition.FaceDetectionActivity"
             android:exported="true" />
         <activity
             android:name=".admin.dashboard.AdminDashboardActivity"
@@ -68,16 +67,19 @@
             android:name=".user.payment.UserPaymentActivity"
             android:exported="true" />
         <activity
-            android:name=".admin.dashboard.RegisterActivity"
+            android:name=".admin.recognition.RegisterActivity"
             android:exported="true" />
         <activity
-            android:name=".admin.dashboard.RecognitionActivity"
+            android:name=".admin.recognition.RecognitionActivity"
             android:exported="true" />
         <activity
             android:name=".user.payment.PaymentActivity"
             android:exported="true" />
         <activity
             android:name=".user.circuit.UserCircuitActivity"
+            android:exported="true"/>
+        <activity
+            android:name=".admin.dashboard.UserDetailsActivity"
             android:exported="true"/>
         <!-- make sure within the application tag, otherwise app will crash with XmlResourceParser errors -->
         <provider

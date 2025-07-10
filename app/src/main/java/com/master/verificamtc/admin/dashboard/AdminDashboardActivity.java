@@ -19,6 +19,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import com.master.verificamtc.R;
+import com.master.verificamtc.admin.recognition.RegisterActivity;
 import com.master.verificamtc.helpers.FirebaseDatabaseHelper;
 
 import java.util.ArrayList;
@@ -30,15 +31,27 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private FirebaseDatabaseHelper databaseHelper;
     private List<UserData> userDataList;
     private ImageView imageView;
+    private Button btnRegisterEmpty;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_list);
+
         userListView = findViewById(R.id.userListView);
+        btnRegisterEmpty = findViewById(R.id.btnRegisterEmpty);
         databaseHelper = new FirebaseDatabaseHelper(this);
         userDataList = new ArrayList<>();
+
         displayUserList();
+
+        // Configurar el botón de registrar sin DNI
+        btnRegisterEmpty.setOnClickListener(v -> {
+            Intent intent = new Intent(AdminDashboardActivity.this, RegisterActivity.class);
+            // No se envía el DNI
+            startActivity(intent);
+        });
     }
 
     private void displayUserList() {
@@ -80,8 +93,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private String getStatusString(FirebaseDatabaseHelper.User user) {
         StringBuilder status = new StringBuilder();
         if (user.paymentStatus) status.append("Pago ✓ ");
-        if (user.writtenExamPassed) status.append("Teórico ✓ ");
         if (user.drivingExamPassed) status.append("Práctico ✓ ");
+        if (user.schedules != null && !user.schedules.isEmpty()) status.append("Horario ✓ ");
 
         return status.length() > 0 ? status.toString() : "Pendiente";
     }
@@ -136,20 +149,25 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 holder = (ViewHolder) convertView.getTag();
             }
 
-            UserData user = users.get(position);
+            final UserData user = users.get(position);
             holder.tvUserData.setText(user.details);
 
-            // En AdminDashboardActivity.java, en el método getView del adaptador:
-            holder.btnRegisterFace.setOnClickListener(v -> {
-                Intent intent = new Intent(AdminDashboardActivity.this, RegisterActivity.class);
-                // Pasar el DNI como extra
+            // Click en el ítem completo para ver detalles y gestionar horarios
+            convertView.setOnClickListener(v -> {
+                Intent intent = new Intent(context, UserDetailsActivity.class);
                 intent.putExtra("USER_DNI", user.dni);
-                startActivity(intent);
+                context.startActivity(intent);
+            });
+
+            // Click en el botón para registrar rostro
+            holder.btnRegisterFace.setOnClickListener(v -> {
+                Intent intent = new Intent(context, RegisterActivity.class);
+                intent.putExtra("USER_DNI", user.dni);
+                context.startActivity(intent);
             });
 
             return convertView;
         }
-
         private class ViewHolder {
             TextView tvUserData;
             Button btnRegisterFace;

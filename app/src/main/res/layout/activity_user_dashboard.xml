@@ -62,7 +62,7 @@
             android:columnOrderPreserved="false"
             android:padding="8dp">
 
-            <!-- Examen Teórico -->
+            <!-- Reemplaza el CardView del examen teórico con este: -->
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
                 android:layout_height="100dp"
@@ -80,18 +80,18 @@
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
-                    android:onClick="goToExam">
+                    android:onClick="goToSchedule">
 
                     <ImageView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@drawable/ic_exam"/>
+                        android:src="@drawable/ic_schedule"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Examen Teórico"
+                        android:text="Mis Horarios"
                         android:textAlignment="center"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -254,7 +254,16 @@
                     style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="8dp"
-                    android:progress="30"/>
+                    android:progress="0"
+                    android:progressDrawable="@drawable/custom_progress_bar"/>
+
+                <TextView
+                    android:id="@+id/tvProgressText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:text="0% completado"
+                    android:layout_marginTop="4dp"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

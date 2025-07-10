@@ -9,6 +9,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.HashMap;
 import java.util.Map;
 import com.master.verificamtc.R;
+import com.master.verificamtc.helpers.FirebaseDatabaseHelper;
 
 public class UserVehicleActivity extends AppCompatActivity {
     private TextInputEditText etPlate, etColor, etBrand, etModel, etYear;
@@ -60,33 +61,19 @@ public class UserVehicleActivity extends AppCompatActivity {
         try {
             int year = Integer.parseInt(yearStr);
 
-            // Crear estructura de datos para Realtime Database
-            Map<String, Object> vehicle = new HashMap<>();
-            vehicle.put("plate", plate);
-            vehicle.put("color", color);
-            vehicle.put("brand", brand);
-            vehicle.put("model", model);
-            vehicle.put("year", year);
-            vehicle.put("userId", userId);
-            vehicle.put("verificationStatus", "pending"); // Estado inicial
+            // Crear objeto Car
+            FirebaseDatabaseHelper.Car vehicle = new FirebaseDatabaseHelper.Car();
+            vehicle.plate = plate;
+            vehicle.color = color;
+            vehicle.brand = brand;
+            vehicle.model = model;
+            vehicle.year = year;
+            vehicle.userId = userId;
+            vehicle.verificationStatus = false;
 
-            // Guardar en Realtime Database (nodo "vehicles" con placa como clave)
-            database.child("vehicles").child(plate.replace("-", "_")) // Reemplazar guiones por underscores
-                    .setValue(vehicle)
-                    .addOnSuccessListener(aVoid -> {
-                        // Actualizar también referencia en el usuario
-                        if (userId != null && !userId.isEmpty()) {
-                            database.child("users").child(userId)
-                                    .child("vehicles").child(plate.replace("-", "_"))
-                                    .setValue(true);
-                        }
-
-                        Toast.makeText(this, "Vehículo guardado exitosamente", Toast.LENGTH_SHORT).show();
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Error al guardar vehículo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
+            // Usar el helper para guardar
+            FirebaseDatabaseHelper dbHelper = new FirebaseDatabaseHelper(this);
+            dbHelper.addVehicle(vehicle);
 
         } catch (NumberFormatException e) {
             Toast.makeText(this, "El año debe ser un número válido", Toast.LENGTH_SHORT).show();

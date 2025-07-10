@@ -43,7 +43,7 @@
                 android:background="@drawable/custom_editttext"
                 android:drawableStart="@drawable/baseline_person_24"
                 android:drawablePadding="8dp"
-                android:hint="@string/dni"
+                android:hint="Correo Electronico"
                 android:importantForAutofill="no"
                 android:inputType="text"
                 android:padding="8dp"

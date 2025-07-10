@@ -26,16 +26,30 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/searchView"
-        android:layout_above="@id/btnRefresh"
+        android:layout_above="@id/buttonContainer"
         android:divider="@android:color/darker_gray"
         android:dividerHeight="1dp"/>
 
-    <Button
-        android:id="@+id/btnRefresh"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/buttonContainer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Actualizar"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="16dp"/>
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="16dp">
+
+        <Button
+            android:id="@+id/btnRefresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Actualizar"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/btnRegisterEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Registrar Rostros"/>
+    </LinearLayout>
 </RelativeLayout>

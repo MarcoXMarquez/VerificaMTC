@@ -10,7 +10,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.master.verificamtc.helpers.FirebaseDatabaseHelper;
-import com.master.verificamtc.admin.dashboard.RecognitionActivity;
+import com.master.verificamtc.admin.recognition.RecognitionActivity;
 import com.master.verificamtc.utils.SecurityHelper;
 import com.master.verificamtc.R;
 import java.util.Calendar;
