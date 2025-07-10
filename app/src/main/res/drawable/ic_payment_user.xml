@@ -1,4 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-
-</selector>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Círculo cabeza -->
+    <path
+        android:fillColor="#294076"
+        android:pathData="M12,4a4,4 0 1,0 0,8a4,4 0 1,0 0,-8" />
+    <!-- Cuerpo -->
+    <path
+        android:fillColor="#294076"
+        android:pathData="M12,14c-5,0 -8,2.5 -8,5.5v2.5h16v-2.5c0,-3 -3,-5.5 -8,-5.5z"/>
+    <!-- Check -->
+    <path
+        android:fillColor="#50b5ff"
+        android:pathData="M20,7.5l-2,2l-1,-1l-1,1.1l2,2l3,-3z"/>
+</vector>
